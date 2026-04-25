@@ -25,13 +25,11 @@ body {
   -webkit-user-select: none;
 }
 
-/* ═══════════════════════════════════════════
-   FEED / SLIDE
-═══════════════════════════════════════════ */
+/* Feed — height di-set oleh JS setelah navbar render
+   Ini lebih reliable dari CSS calc() di Chrome Android */
 #feed {
   position: absolute;
   inset: 0;
-  bottom: calc(var(--nav-h) + var(--safe-bot));
   overflow: hidden;
 }
 
@@ -226,7 +224,7 @@ body {
 ═══════════════════════════════════════════ */
 .page {
   position: fixed; inset: 0;
-  bottom: calc(var(--nav-h) + var(--safe-bot));
+  /* bottom di-set JS sama seperti #feed */
   background: #0a0a0a;
   z-index: 999; overflow-y: auto;
   display: none;
@@ -385,6 +383,35 @@ body {
 </nav>
 
 <script src="data/videos.js"></script>
+<script>
+// ── FEED HEIGHT FIX ──────────────────────────────────────────────────────────
+// Chrome Android tidak update env(safe-area-inset-bottom) dengan benar.
+// Solusi: ukur tinggi navbar via getBoundingClientRect() dan set height via JS.
+// Ini 100% akurat di semua browser karena membaca ukuran DOM yang sudah di-render.
+function fixFeedHeight() {
+  const navbar  = document.getElementById('navbar');
+  const feed    = document.getElementById('feed');
+  const pages   = document.querySelectorAll('.page');
+  const navRect = navbar.getBoundingClientRect();
+  const navTop  = navRect.top; // jarak dari atas viewport ke navbar
+
+  // Feed = dari atas (0) sampai tepat di atas navbar
+  feed.style.top    = '0';
+  feed.style.bottom = (window.innerHeight - navTop) + 'px';
+
+  // Pages juga sama
+  pages.forEach(p => {
+    p.style.top    = '0';
+    p.style.bottom = (window.innerHeight - navTop) + 'px';
+  });
+}
+
+// Jalankan sekali saat load, dan saat resize (orientasi berubah)
+window.addEventListener('DOMContentLoaded', fixFeedHeight);
+window.addEventListener('resize',           fixFeedHeight);
+// iOS Safari kadang perlu delay setelah load
+window.addEventListener('load', () => setTimeout(fixFeedHeight, 100));
+</script>
 <script>
 // ── GUARD ────────────────────────────────────────────────────────────────────
 if (typeof videos === 'undefined' || !Array.isArray(videos) || videos.length === 0) {
@@ -788,7 +815,65 @@ document.getElementById('logoHome').addEventListener('click', (e) => {
 //  NAVIGATION PAGES
 // ══════════════════════════════════════════════════════════════════════════════
 
-// ── GRID RENDER ──────────────────────────────────────────────────────────────
+// ── AUTO THUMBNAIL GENERATOR ─────────────────────────────────────────────────
+// Snap frame dari video menggunakan canvas — tidak perlu URL jpg sama sekali.
+// Cache thumbnail di memori (thumbCache) supaya tidak di-generate ulang tiap render.
+const thumbCache = {}; // { videoId: dataURL }
+
+function generateThumb(src, callback) {
+  // Gunakan cache kalau sudah pernah di-generate
+  const key = src;
+  if (thumbCache[key]) { callback(thumbCache[key]); return; }
+
+  const v = document.createElement('video');
+  v.crossOrigin  = 'anonymous';
+  v.muted        = true;
+  v.preload      = 'metadata';
+  v.playsInline  = true;
+
+  v.addEventListener('loadedmetadata', () => {
+    // Seek ke 10% durasi untuk dapat frame yang lebih menarik
+    v.currentTime = Math.max(0.5, v.duration * 0.1);
+  }, { once: true });
+
+  v.addEventListener('seeked', () => {
+    try {
+      const canvas = document.createElement('canvas');
+      // Resolusi kecil untuk hemat memory — 180x320 cukup untuk grid thumbnail
+      canvas.width  = 180;
+      canvas.height = 320;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      thumbCache[key] = dataUrl;
+      callback(dataUrl);
+    } catch (e) {
+      // CORS atau error lain → callback null, pakai placeholder
+      callback(null);
+    }
+    v.src = ''; // bebaskan memory
+  }, { once: true });
+
+  v.addEventListener('error', () => callback(null), { once: true });
+
+  v.src = src;
+}
+
+// Set thumbnail ke elemen img di grid, dengan fallback placeholder
+function setGridThumb(imgEl, placeholderEl, src, title) {
+  if (!src) { placeholderEl.style.display = 'flex'; return; }
+  generateThumb(src, (dataUrl) => {
+    if (dataUrl) {
+      imgEl.src = dataUrl;
+      imgEl.style.display = 'block';
+      placeholderEl.style.display = 'none';
+    } else {
+      // CORS block snap — pakai placeholder
+      imgEl.style.display = 'none';
+      placeholderEl.style.display = 'flex';
+    }
+  });
+}
 const GRAD_COLORS = ['#1a1a2e','#16213e','#0f3460','#1b1b2f','#162447','#1f4068','#1b262c','#2d132c'];
 function buildGrid(container, list) {
   container.innerHTML = '';
@@ -803,29 +888,35 @@ function buildGrid(container, list) {
   list.forEach((v, idx) => {
     const item = document.createElement('div');
     item.className = 'grid-item';
+    item.style.background = GRAD_COLORS[idx % GRAD_COLORS.length];
 
-    const thumb = v.thumb && v.thumb.trim();
+    // img — hidden dulu
+    const img = document.createElement('img');
+    img.alt = v.title || '';
+    img.style.cssText = 'display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;';
 
-    if (thumb) {
-      const img = document.createElement('img');
-      img.src = thumb; img.alt = v.title || '';
-      img.loading = 'lazy';
+    // placeholder icon
+    const ph = document.createElement('div');
+    ph.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:38px;opacity:0.25;';
+    ph.textContent = '🎬';
+
+    item.appendChild(img);
+    item.appendChild(ph);
+
+    // Prioritas: 1) thumb di videos.js  2) auto-snap dari video src
+    const thumbUrl = v.thumb && v.thumb.trim();
+    const vidSrc   = v.src || '';
+
+    if (thumbUrl) {
+      img.src = thumbUrl;
+      img.onload  = () => { img.style.display = 'block'; ph.style.display = 'none'; };
       img.onerror = () => {
-        img.remove();
-        item.style.background = GRAD_COLORS[idx % GRAD_COLORS.length];
-        const ph = document.createElement('div');
-        ph.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px;opacity:0.3;';
-        ph.textContent = '🎬';
-        item.appendChild(ph);
+        img.style.display = 'none'; ph.style.display = 'flex';
+        if (vidSrc) setGridThumb(img, ph, vidSrc);
       };
-      item.appendChild(img);
-    } else {
-      // Tidak ada thumb — pakai gradient + icon
-      item.style.background = GRAD_COLORS[idx % GRAD_COLORS.length];
-      const ph = document.createElement('div');
-      ph.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px;opacity:0.3;';
-      ph.textContent = '🎬';
-      item.appendChild(ph);
+    } else if (vidSrc) {
+      // Auto-snap dari video
+      setGridThumb(img, ph, vidSrc);
     }
 
     const overlay = document.createElement('div'); overlay.className = 'grid-overlay';
@@ -836,7 +927,6 @@ function buildGrid(container, list) {
     item.appendChild(title);
     item.appendChild(views);
 
-    // Bookmark badge kalau sudah disave
     if (savedSet.has(v.id)) {
       const badge = document.createElement('div');
       badge.className = 'like-badge';

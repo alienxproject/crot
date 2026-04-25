@@ -602,4 +602,344 @@ vlist.forEach((v, i) => {
   progWrap.addEventListener('click', (e) => {
     e.stopPropagation();
     if (!vid.duration) return;
-    vid.currentTime = ((e.clientX - progWrap.getBoundin
+    vid.currentTime = ((e.clientX - progWrap.getBoundingClientRect().left) / progWrap.offsetWidth) * vid.duration;
+  });
+});
+
+// ── LIKE LOGIC ───────────────────────────────────────────────────────────────
+function formatCount(n) {
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000)    return (n / 1000).toFixed(1) + 'K';
+  return String(n);
+}
+
+function triggerLike(i, likeBtn, heart, fromDoubleTap) {
+  const v = vlist[i];
+  const isLiked = likedSet.has(v.id);
+
+  if (fromDoubleTap && isLiked) {
+    // Double tap saat sudah liked → hanya tampilkan animasi heart tanpa unlike
+    animHeart(heart);
+    return;
+  }
+
+  if (isLiked) {
+    likedSet.delete(v.id);
+    likeBtn.classList.remove('liked');
+    likeBtn.querySelector('.action-icon').textContent = '🤍';
+    showToast('Dihapus dari Likes');
+  } else {
+    likedSet.add(v.id);
+    likeBtn.classList.add('liked');
+    likeBtn.querySelector('.action-icon').textContent = '❤️';
+    animHeart(heart);
+    showToast('Ditambahkan ke Likes ❤️');
+  }
+  saveLikes();
+  renderLikesPage();
+}
+
+function animHeart(heart) {
+  heart.classList.remove('pop');
+  void heart.offsetWidth; // reflow trigger
+  heart.classList.add('pop');
+  setTimeout(() => heart.classList.remove('pop'), 700);
+}
+
+// ── DOTS ─────────────────────────────────────────────────────────────────────
+vlist.forEach((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  dotsEl.appendChild(d);
+});
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function getVid(i) { return slides[i].querySelector('video'); }
+function ensureSrc(i) {
+  if (i < 0 || i >= total) return;
+  const v = getVid(i);
+  if (!v.src && v.dataset.src) v.src = v.dataset.src;
+}
+
+// ── STALL RECOVERY ───────────────────────────────────────────────────────────
+const stallTimers = new Array(total).fill(null);
+const STALL_MS    = 5000;
+function clearStall(i) { if (stallTimers[i]) { clearTimeout(stallTimers[i]); stallTimers[i] = null; } }
+function startStallWatch(i) {
+  clearStall(i);
+  const v = getVid(i), spinner = slides[i].querySelector('.spinner'), snapTime = v.currentTime;
+  stallTimers[i] = setTimeout(() => {
+    stallTimers[i] = null;
+    if (i !== current || userPaused[i] || v.paused || v.currentTime > snapTime + 0.1) return;
+    const src = v.src, pos = v.currentTime;
+    spinner.classList.add('show');
+    v.src = ''; v.load();
+    setTimeout(() => {
+      if (i !== current || userPaused[i]) return;
+      v.src = src; v.muted = !interacted;
+      v.addEventListener('loadedmetadata', function onMeta() {
+        v.removeEventListener('loadedmetadata', onMeta);
+        if (userPaused[i]) return;
+        if (pos > 0 && pos < v.duration - 0.5) v.currentTime = pos;
+        v.play().catch(() => { v.muted = true; v.play().catch(() => {}); });
+      }, { once: true });
+    }, 400);
+  }, STALL_MS);
+}
+
+// ── PLAY ─────────────────────────────────────────────────────────────────────
+function playVid(i) {
+  const v = getVid(i), spinner = slides[i].querySelector('.spinner');
+  if (userPaused[i]) return;
+  slides[i].querySelector('.play-icon').classList.remove('show');
+  v.muted = !interacted;
+  if (finished[i]) { v.currentTime = 0; finished[i] = false; slides[i].querySelector('.prog-fill').style.width = '0%'; }
+  if (!v.src && v.dataset.src) v.src = v.dataset.src;
+  if (v.readyState === 0) {
+    spinner.classList.add('show'); v.load();
+    v.addEventListener('loadedmetadata', function onReady() {
+      v.removeEventListener('loadedmetadata', onReady);
+      if (i !== current) return;
+      v.play().catch(() => { v.muted = true; v.play().catch(() => {}); });
+      startStallWatch(i);
+    }, { once: true });
+    setTimeout(() => { if (i !== current || !v.paused || userPaused[i]) return; v.play().catch(() => { v.muted = true; v.play().catch(() => {}); }); }, 8000);
+    return;
+  }
+  const p = v.play();
+  if (p && p.catch) p.catch(() => { v.muted = true; v.play().catch(() => {}); });
+  startStallWatch(i);
+}
+
+function unloadFarVideos(idx) {
+  slides.forEach((s, i) => {
+    const dist = Math.min(Math.abs(i - idx), total - Math.abs(i - idx));
+    if (dist > 2) {
+      const v = s.querySelector('video');
+      if (!v.paused) v.pause();
+      if (v.src) { v.dataset.src = v.src; v.removeAttribute('src'); v.load(); }
+    }
+  });
+}
+
+// ── NAVIGATE ─────────────────────────────────────────────────────────────────
+function goTo(next, force, isUserSwipe) {
+  if (locked && !force) return;
+  if (next === current && !force) return;
+  locked = true;
+  userPaused[current] = false;
+  const prev = current;
+  clearStall(prev);
+  slides[prev].querySelector('.play-icon').classList.remove('show');
+  slides.forEach((s, i) => {
+    if (i !== next) { s.querySelector('video').pause(); s.querySelector('.spinner').classList.remove('show'); s.classList.remove('active'); }
+  });
+  current = next;
+  slides[current].classList.add('active');
+  dotsEl.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+  ensureSrc(current); ensureSrc((current + 1) % total);
+  unloadFarVideos(current);
+  if (current === 0 && !interacted) {
+    const pi = slides[0].querySelector('.play-icon');
+    pi.textContent = '▶'; pi.classList.add('show');
+    locked = false; return;
+  }
+  playVid(current);
+  setTimeout(() => { locked = false; }, 280);
+  if (!ctaFired && isUserSwipe) {
+    if (!hasLeftHome && prev === 0) hasLeftHome = true;
+    if (hasLeftHome) {
+      swipeCount++;
+      if (swipeCount >= CTA_SWIPES && CTA_URL) { ctaFired = true; setTimeout(() => window.open(CTA_URL, '_blank'), 400); }
+    }
+  }
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+slides[0].classList.add('active');
+ensureSrc(1);
+const pi0 = slides[0].querySelector('.play-icon');
+pi0.textContent = '▶'; pi0.classList.add('show');
+
+let hintDone = false;
+function dismissHint() { if (hintDone) return; hintDone = true; swipeHint.classList.remove('show'); swipeHint.classList.add('hide'); }
+setTimeout(() => { if (hintDone) return; swipeHint.classList.add('show'); setTimeout(dismissHint, 4000); }, 900);
+
+// ── TOUCH ────────────────────────────────────────────────────────────────────
+let ty = 0, tx = 0, tt = 0, tVert = false;
+feed.addEventListener('touchstart', (e) => { ty = e.touches[0].clientY; tx = e.touches[0].clientX; tt = Date.now(); tVert = false; }, { passive: true });
+feed.addEventListener('touchmove', (e) => {
+  const dy = ty - e.touches[0].clientY, dx = tx - e.touches[0].clientX;
+  if (!tVert && (Math.abs(dy) > 8 || Math.abs(dx) > 8)) tVert = Math.abs(dy) >= Math.abs(dx);
+  if (tVert) e.preventDefault();
+}, { passive: false });
+feed.addEventListener('touchend', (e) => {
+  if (!tVert || locked) return;
+  const dy = ty - e.changedTouches[0].clientY, vel = Math.abs(dy) / Math.max(Date.now() - tt, 1);
+  if (Math.abs(dy) < 40 && vel < 0.3) return;
+  interacted = true; dismissHint();
+  goTo(dy > 0 ? (current + 1) % total : (current - 1 + total) % total, false, true);
+}, { passive: true });
+
+// ── KEYBOARD ─────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  if (locked) return;
+  if (e.key === 'ArrowDown') { dismissHint(); goTo((current + 1) % total, false, true); }
+  if (e.key === 'ArrowUp')   { goTo((current - 1 + total) % total, false, true); }
+  if (e.key === ' ')         { e.preventDefault(); slides[current].click(); }
+});
+
+// ── WHEEL ────────────────────────────────────────────────────────────────────
+let wc = false;
+feed.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  if (locked || wc) return;
+  wc = true; setTimeout(() => wc = false, 420);
+  dismissHint();
+  goTo(e.deltaY > 0 ? (current + 1) % total : (current - 1 + total) % total, false, true);
+}, { passive: false });
+
+// ── CONTEXT MENU BLOCK ───────────────────────────────────────────────────────
+document.addEventListener('contextmenu', e => e.preventDefault());
+feed.addEventListener('contextmenu',     e => e.preventDefault());
+
+// ── LOGO HOME ────────────────────────────────────────────────────────────────
+document.getElementById('logoHome').addEventListener('click', (e) => {
+  e.stopPropagation();
+  switchPage('home');
+  if (current === 0) {
+    const v = getVid(0); v.pause(); v.currentTime = 0;
+    slides[0].querySelector('.prog-fill').style.width = '0%';
+    const pi = slides[0].querySelector('.play-icon');
+    pi.textContent = '▶'; pi.classList.add('show');
+    interacted = false; hasLeftHome = false; swipeCount = 0; return;
+  }
+  locked = false; goTo(0, true, false);
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  NAVIGATION PAGES
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── GRID RENDER ──────────────────────────────────────────────────────────────
+function buildGrid(container, list) {
+  container.innerHTML = '';
+  if (list.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1">
+        <div class="empty-icon">🤍</div>
+        <p>Belum ada video yang disukai</p>
+      </div>`;
+    return;
+  }
+  list.forEach((v) => {
+    const item = document.createElement('div');
+    item.className = 'grid-item';
+
+    const img = document.createElement('img');
+    img.src  = v.thumb || '';
+    img.alt  = v.title || '';
+    // Fallback kalau thumb kosong — warna solid
+    img.onerror = () => { img.style.display = 'none'; item.style.background = '#1a1a2e'; };
+
+    const overlay = document.createElement('div'); overlay.className = 'grid-overlay';
+    const title   = document.createElement('div'); title.className   = 'grid-title'; title.textContent = v.title || '';
+    const views   = document.createElement('div'); views.className   = 'grid-views'; views.textContent = v.views || '';
+
+    item.appendChild(img);
+    item.appendChild(overlay);
+    item.appendChild(title);
+    item.appendChild(views);
+
+    if (likedSet.has(v.id)) {
+      const badge = document.createElement('div'); badge.className = 'like-badge'; badge.textContent = '❤️';
+      item.appendChild(badge);
+    }
+
+    item.addEventListener('click', () => {
+      // Cari index di vlist dan navigasi ke sana
+      const idx = vlist.findIndex(x => x.id === v.id);
+      if (idx === -1) return;
+      switchPage('home');
+      if (idx !== current) { locked = false; goTo(idx, true, false); }
+    });
+
+    container.appendChild(item);
+  });
+}
+
+function renderExplorePage() { buildGrid(document.getElementById('gridExplore'), vlist); }
+function renderLikesPage() {
+  const liked = vlist.filter(v => likedSet.has(v.id));
+  const container = document.getElementById('gridLikes');
+  if (liked.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1">
+        <div class="empty-icon">🤍</div>
+        <p>Belum ada video yang disukai.<br>Double tap video untuk like!</p>
+      </div>`;
+    return;
+  }
+  buildGrid(container, liked);
+}
+
+// ── SEARCH ───────────────────────────────────────────────────────────────────
+function renderSearch(query) {
+  const q = query.trim().toLowerCase();
+  const result = q ? vlist.filter(v => (v.title || '').toLowerCase().includes(q)) : vlist;
+  buildGrid(document.getElementById('gridSearch'), result);
+}
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  renderSearch(e.target.value);
+});
+
+// ── PAGE SWITCHER ─────────────────────────────────────────────────────────────
+let currentPage = 'home';
+
+function switchPage(name) {
+  currentPage = name;
+  // Navbar active state
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.page === name);
+  });
+
+  // Show/hide pages
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('logoHome').style.display = name === 'home' ? '' : 'none';
+  document.getElementById('dots').style.display     = name === 'home' ? '' : 'none';
+  document.getElementById('swipeHint').style.display = name === 'home' ? '' : 'none';
+
+  if (name === 'home') {
+    // Resume video jika ada
+    const vid = getVid(current);
+    if (vid.paused && !userPaused[current]) {
+      vid.muted = !interacted;
+      vid.play().catch(() => {});
+    }
+    return;
+  }
+
+  // Pause video saat pindah halaman
+  slides.forEach(s => s.querySelector('video').pause());
+
+  if (name === 'explore') {
+    renderExplorePage();
+    document.getElementById('pageExplore').classList.add('active');
+  } else if (name === 'search') {
+    renderSearch(document.getElementById('searchInput').value);
+    document.getElementById('pageSearch').classList.add('active');
+    setTimeout(() => document.getElementById('searchInput').focus(), 300);
+  } else if (name === 'likes') {
+    renderLikesPage();
+    document.getElementById('pageLikes').classList.add('active');
+  }
+}
+
+// Navbar click
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => switchPage(item.dataset.page));
+});
+</script>
+</body>
+</html>

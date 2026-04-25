@@ -478,7 +478,9 @@ const swipeHint = document.getElementById('swipeHint');
 const slides  = [];
 
 // ── BUILD FEED DOM ────────────────────────────────────────────────────────────
-vlist.forEach((v, i) => {
+
+// Fungsi build 1 slide — bisa dipanggil untuk feed awal maupun tambah dinamis
+function buildSlide(v, i, isFirst) {
   const slide = document.createElement('div');
   slide.className = 'slide';
 
@@ -487,7 +489,7 @@ vlist.forEach((v, i) => {
   vid.setAttribute('webkit-playsinline', '');
   vid.muted = true; vid.preload = 'none'; vid.loop = false;
   if (v.thumb) vid.poster = v.thumb;
-  if (i === 0) { vid.src = v.src; vid.preload = 'metadata'; }
+  if (isFirst) { vid.src = v.src; vid.preload = 'metadata'; }
   else          vid.dataset.src = v.src;
 
   // Info
@@ -543,10 +545,21 @@ vlist.forEach((v, i) => {
   slide.appendChild(playIcon);
   slide.appendChild(spinner);
   slide.appendChild(sideActions);
+
+  // Return slide — caller yang append ke feed & push ke slides
+  return { slide, vid, progFill, playIcon, spinner, saveBtn, dlBtn, progWrap };
+}
+
+// Build semua slide awal dari vlist
+vlist.forEach((v, i) => {
+  const { slide, vid, progFill, playIcon, spinner, saveBtn, dlBtn, progWrap } = buildSlide(v, i, i === 0);
   feed.appendChild(slide);
   slides.push(slide);
+  attachSlideEvents(v, i, vid, progFill, playIcon, spinner, saveBtn, dlBtn, progWrap);
+});
 
-  // ── EVENTS ──
+// Fungsi attach events — dipisah supaya bisa dipanggil untuk slide dinamis
+function attachSlideEvents(v, i, vid, progFill, playIcon, spinner, saveBtn, dlBtn, progWrap) {
 
   vid.addEventListener('timeupdate', () => {
     if (vid.duration) progFill.style.width = (vid.currentTime / vid.duration * 100) + '%';
@@ -575,7 +588,7 @@ vlist.forEach((v, i) => {
   vid.addEventListener('ended', () => {
     if (i !== current) return;
     finished[i] = true; locked = false;
-    goTo((current + 1) % total, false, false);
+    goTo((current + 1) % vlist.length, false, false);
   });
 
   // Single tap → play/pause (tidak ada double tap logic)
@@ -620,17 +633,36 @@ vlist.forEach((v, i) => {
     if (!vid.duration) return;
     vid.currentTime = ((e.clientX - progWrap.getBoundingClientRect().left) / progWrap.offsetWidth) * vid.duration;
   });
-});
+} // end attachSlideEvents
+
+// ── ADD VIDEO KE FEED SECARA DINAMIS ─────────────────────────────────────────
+// Dipanggil saat user klik video dari explore/search yang tidak ada di home feed
+function addVideoToFeed(v) {
+  const i = slides.length; // index baru = setelah slide terakhir
+  vlist.push(v);            // tambah ke vlist supaya goTo bisa akses
+
+  // Extend array state
+  finished.push(false);
+  userPaused.push(false);
+  stallTimers.push(null);
+
+  const { slide, vid, progFill, playIcon, spinner, saveBtn, dlBtn, progWrap } = buildSlide(v, i, false);
+  feed.appendChild(slide);
+  slides.push(slide);
+  attachSlideEvents(v, i, vid, progFill, playIcon, spinner, saveBtn, dlBtn, progWrap);
+
+  return i; // kembalikan index slide baru
+}
 
 // ── SAVE LOGIC ───────────────────────────────────────────────────────────────
 const ICON_SAVE_OFF_TPL = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="22" height="22"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 const ICON_SAVE_ON_TPL  = `<svg viewBox="0 0 24 24" fill="#FFD700" stroke="#FFD700" stroke-width="2" width="22" height="22"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 
 function triggerSave(i, saveBtn) {
-  const v = vlist[i];
+  const v      = vlist[i];
   const isSaved = savedSet.has(v.id);
-  const icon  = saveBtn.querySelector('.action-icon');
-  const label = saveBtn.querySelector('.save-label');
+  const icon   = saveBtn.querySelector('.action-icon');
+  const label  = saveBtn.querySelector('.save-label');
 
   if (isSaved) {
     savedSet.delete(v.id);
@@ -659,7 +691,7 @@ vlist.forEach((_, i) => {
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 function getVid(i) { return slides[i].querySelector('video'); }
 function ensureSrc(i) {
-  if (i < 0 || i >= total) return;
+  if (i < 0 || i >= vlist.length) return;
   const v = getVid(i);
   if (!v.src && v.dataset.src) v.src = v.dataset.src;
 }
@@ -740,7 +772,7 @@ function goTo(next, force, isUserSwipe) {
   current = next;
   slides[current].classList.add('active');
   dotsEl.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
-  ensureSrc(current); ensureSrc((current + 1) % total);
+  ensureSrc(current); ensureSrc((current + 1) % vlist.length);
   unloadFarVideos(current);
   if (current === 0 && !interacted) {
     const pi = slides[0].querySelector('.play-icon');
@@ -781,14 +813,14 @@ feed.addEventListener('touchend', (e) => {
   const dy = ty - e.changedTouches[0].clientY, vel = Math.abs(dy) / Math.max(Date.now() - tt, 1);
   if (Math.abs(dy) < 40 && vel < 0.3) return;
   interacted = true; dismissHint();
-  goTo(dy > 0 ? (current + 1) % total : (current - 1 + total) % total, false, true);
+  goTo(dy > 0 ? (current + 1) % vlist.length : (current - 1 + vlist.length) % vlist.length, false, true);
 }, { passive: true });
 
 // ── KEYBOARD ─────────────────────────────────────────────────────────────────
 document.addEventListener('keydown', (e) => {
   if (locked) return;
-  if (e.key === 'ArrowDown') { dismissHint(); goTo((current + 1) % total, false, true); }
-  if (e.key === 'ArrowUp')   { goTo((current - 1 + total) % total, false, true); }
+  if (e.key === 'ArrowDown') { dismissHint(); goTo((current + 1) % vlist.length, false, true); }
+  if (e.key === 'ArrowUp')   { goTo((current - 1 + vlist.length) % vlist.length, false, true); }
   if (e.key === ' ')         { e.preventDefault(); slides[current].click(); }
 });
 
@@ -799,7 +831,7 @@ feed.addEventListener('wheel', (e) => {
   if (locked || wc) return;
   wc = true; setTimeout(() => wc = false, 420);
   dismissHint();
-  goTo(e.deltaY > 0 ? (current + 1) % total : (current - 1 + total) % total, false, true);
+  goTo(e.deltaY > 0 ? (current + 1) % vlist.length : (current - 1 + vlist.length) % vlist.length, false, true);
 }, { passive: false });
 
 // ── CONTEXT MENU BLOCK ───────────────────────────────────────────────────────
@@ -944,19 +976,30 @@ function buildGrid(container, list) {
     }
 
     item.addEventListener('click', () => {
-      const idx2 = vlist.findIndex(x => x.id === v.id);
-      if (idx2 === -1) return;
+      // Cek apakah video sudah ada di home feed
+      let idx2 = vlist.findIndex(x => x.id === v.id);
+
+      if (idx2 === -1) {
+        // Tidak ada di feed — tambahkan secara dinamis lalu navigate
+        idx2 = addVideoToFeed(v);
+      }
+
       switchPage('home');
-      if (idx2 !== current) { locked = false; goTo(idx2, true, false); }
+      locked = false;
+      goTo(idx2, true, false);
     });
 
     container.appendChild(item);
   });
 }
 
-function renderExplorePage() { buildGrid(document.getElementById('gridExplore'), vlist); }
+// allVideos = semua video (untuk explore, search, saved)
+// vlist = 10 random untuk home feed saja
+const allVideos = shuffle([...videos]);
+
+function renderExplorePage() { buildGrid(document.getElementById('gridExplore'), allVideos); }
 function renderSavedPage() {
-  const saved = vlist.filter(v => savedSet.has(v.id));
+  const saved = allVideos.filter(v => savedSet.has(v.id));
   const container = document.getElementById('gridLikes');
   if (saved.length === 0) {
     container.innerHTML = `
@@ -972,7 +1015,7 @@ function renderSavedPage() {
 // ── SEARCH ───────────────────────────────────────────────────────────────────
 function renderSearch(query) {
   const q = query.trim().toLowerCase();
-  const result = q ? vlist.filter(v => (v.title || '').toLowerCase().includes(q)) : vlist;
+  const result = q ? allVideos.filter(v => (v.title || '').toLowerCase().includes(q)) : allVideos;
   buildGrid(document.getElementById('gridSearch'), result);
 }
 

@@ -187,7 +187,7 @@ body {
   50%      { transform: translateX(-50%) translateY(-8px); }
 }
 
-/* Side dots — disembunyikan */
+/* Side dots — disembunyikan permanent */
 #dots { display: none !important; }
 
 /* ═══════════════════════════════════════════
@@ -401,9 +401,11 @@ function fixLayout() {
   document.getElementById('feed').style.bottom = bottomVal;
   document.querySelectorAll('.page').forEach(p => { p.style.bottom = bottomVal; });
 
-  // Hint lebih tinggi dari title (title ada di ~30-60px dari bawah feed)
-  // Naruh hint di atas title dengan buffer 90px dari atas navbar
-  const aboveNav = navH + 100;
+  // Hint harus di atas title+views (title: bottom 30px, views ~50px, buffer 30px)
+  // Total: navH + 30(title) + 30(views height) + 30(buffer) = navH + ~130px dari bawah layar
+  // Tapi hint posisinya dari bawah layar (fixed), bukan dari feed
+  // title ada di bawah feed = navH + 30px dari bawah layar → hint minimal navH + 110px
+  const aboveNav = navH + 150;
   const hint = document.getElementById('swipeHint');
   const toast = document.getElementById('toast');
   if (hint)  hint.style.bottom  = aboveNav + 'px';
@@ -856,72 +858,41 @@ document.getElementById('logoHome').addEventListener('click', (e) => {
 //  NAVIGATION PAGES
 // ══════════════════════════════════════════════════════════════════════════════
 
-// ── AUTO THUMBNAIL GENERATOR ─────────────────────────────────────────────────
-// Snap frame dari video menggunakan canvas — tidak perlu URL jpg sama sekali.
-// Cache thumbnail di memori (thumbCache) supaya tidak di-generate ulang tiap render.
-const thumbCache = {}; // { videoId: dataURL }
+// ── CLOUDINARY THUMBNAIL GENERATOR ──────────────────────────────────────────
+// Generate thumbnail dari video URL via Cloudinary video/fetch.
+// Tidak perlu upload — Cloudinary fetch & transform langsung dari URL sumber.
+//
+// Contoh penggunaan:
+//   const thumbUrl = cloudinaryThumb('https://cdn.videy.co/abc.mp4');
+//   const thumbUrl = cloudinaryThumb('https://cdn.videy.co/abc.mp4', { width: 400, height: 600, time: '5' });
+//
+const CLOUDINARY_CLOUD = 'dqp9grk3s';
 
-function generateThumb(src, callback) {
-  // Gunakan cache kalau sudah pernah di-generate
-  const key = src;
-  if (thumbCache[key]) { callback(thumbCache[key]); return; }
-
-  const v = document.createElement('video');
-  v.crossOrigin  = 'anonymous';
-  v.muted        = true;
-  v.preload      = 'metadata';
-  v.playsInline  = true;
-
-  v.addEventListener('loadedmetadata', () => {
-    // Seek ke 10% durasi untuk dapat frame yang lebih menarik
-    v.currentTime = Math.max(0.5, v.duration * 0.1);
-  }, { once: true });
-
-  v.addEventListener('seeked', () => {
-    try {
-      const canvas = document.createElement('canvas');
-      // Resolusi kecil untuk hemat memory — 180x320 cukup untuk grid thumbnail
-      canvas.width  = 180;
-      canvas.height = 320;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-      thumbCache[key] = dataUrl;
-      callback(dataUrl);
-    } catch (e) {
-      // CORS atau error lain → callback null, pakai placeholder
-      callback(null);
-    }
-    v.src = ''; // bebaskan memory
-  }, { once: true });
-
-  v.addEventListener('error', () => callback(null), { once: true });
-
-  v.src = src;
+function cloudinaryThumb(videoUrl, opts = {}) {
+  if (!videoUrl) return '';
+  const {
+    width   = 360,
+    height  = 640,
+    time    = '3',
+    quality = 'auto'
+  } = opts;
+  const encoded = encodeURIComponent(videoUrl);
+  return `https://res.cloudinary.com/${CLOUDINARY_CLOUD}/video/fetch/w_${width},h_${height},c_fill,q_${quality},so_${time}/${encoded}.jpg`;
 }
 
-// Set thumbnail ke elemen img di grid, dengan fallback placeholder
-function setGridThumb(imgEl, placeholderEl, src, title) {
-  if (!src) { placeholderEl.style.display = 'flex'; return; }
-  generateThumb(src, (dataUrl) => {
-    if (dataUrl) {
-      imgEl.src = dataUrl;
-      imgEl.style.display = 'block';
-      placeholderEl.style.display = 'none';
-    } else {
-      // CORS block snap — pakai placeholder
-      imgEl.style.display = 'none';
-      placeholderEl.style.display = 'flex';
-    }
-  });
+function resolveThumb(v) {
+  if (v.thumb && v.thumb.trim()) return v.thumb.trim();
+  if (v.src   && v.src.trim())  return cloudinaryThumb(v.src.trim());
+  return '';
 }
+
 const GRAD_COLORS = ['#1a1a2e','#16213e','#0f3460','#1b1b2f','#162447','#1f4068','#1b262c','#2d132c'];
 function buildGrid(container, list) {
   container.innerHTML = '';
   if (list.length === 0) {
     container.innerHTML = `
       <div class="empty-state" style="grid-column:1/-1">
-        <div class="empty-icon">🔖</div>
+        <div class="empty-icon">\U0001f516</div>
         <p>Belum ada video yang disimpan</p>
       </div>`;
     return;
@@ -931,39 +902,26 @@ function buildGrid(container, list) {
     item.className = 'grid-item';
     item.style.background = GRAD_COLORS[idx % GRAD_COLORS.length];
 
-    // img — hidden dulu
-    const img = document.createElement('img');
-    img.alt = v.title || '';
-    img.style.cssText = 'display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;';
-
-    // placeholder icon
     const ph = document.createElement('div');
     ph.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:38px;opacity:0.25;';
-    ph.textContent = '🎬';
-
-    item.appendChild(img);
+    ph.textContent = '\U0001f3ac';
     item.appendChild(ph);
 
-    // Prioritas: 1) thumb di videos.js  2) auto-snap dari video src
-    const thumbUrl = v.thumb && v.thumb.trim();
-    const vidSrc   = v.src || '';
-
+    const thumbUrl = resolveThumb(v);
     if (thumbUrl) {
-      img.src = thumbUrl;
-      img.onload  = () => { img.style.display = 'block'; ph.style.display = 'none'; };
-      img.onerror = () => {
-        img.style.display = 'none'; ph.style.display = 'flex';
-        if (vidSrc) setGridThumb(img, ph, vidSrc);
-      };
-    } else if (vidSrc) {
-      // Auto-snap dari video
-      setGridThumb(img, ph, vidSrc);
+      const img = document.createElement('img');
+      img.alt     = v.title || '';
+      img.loading = 'lazy';
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;inset:0;display:block;';
+      img.src     = thumbUrl;
+      img.onerror = () => { img.remove(); ph.style.display = 'flex'; };
+      img.onload  = () => { ph.style.display = 'none'; };
+      item.appendChild(img);
     }
 
     const overlay = document.createElement('div'); overlay.className = 'grid-overlay';
     const title   = document.createElement('div'); title.className   = 'grid-title'; title.textContent = v.title || '';
     const views   = document.createElement('div'); views.className   = 'grid-views'; views.textContent = v.views || '';
-
     item.appendChild(overlay);
     item.appendChild(title);
     item.appendChild(views);
@@ -976,14 +934,8 @@ function buildGrid(container, list) {
     }
 
     item.addEventListener('click', () => {
-      // Cek apakah video sudah ada di home feed
       let idx2 = vlist.findIndex(x => x.id === v.id);
-
-      if (idx2 === -1) {
-        // Tidak ada di feed — tambahkan secara dinamis lalu navigate
-        idx2 = addVideoToFeed(v);
-      }
-
+      if (idx2 === -1) idx2 = addVideoToFeed(v);
       switchPage('home');
       locked = false;
       goTo(idx2, true, false);
@@ -992,6 +944,7 @@ function buildGrid(container, list) {
     container.appendChild(item);
   });
 }
+
 
 // allVideos = semua video (untuk explore, search, saved)
 // vlist = 10 random untuk home feed saja
@@ -1038,30 +991,33 @@ function switchPage(name) {
 
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('logoHome').style.display  = name === 'home' ? '' : 'none';
-  document.getElementById('dots').style.display      = name === 'home' ? '' : 'none';
   document.getElementById('swipeHint').style.display = name === 'home' ? '' : 'none';
 
   if (name === 'home') {
     // Balik ke home — resume video jika tadi sedang play dan bukan user pause
     const vid = getVid(current);
     if (wasPlayingBeforeLeave && !userPaused[current]) {
-      vid.muted = !interacted;
+      vid.volume = 1;
+      vid.muted  = !interacted;
       vid.play().catch(() => {});
     }
     wasPlayingBeforeLeave = false;
     return;
   }
 
-  // Keluar dari home — pause semua video, MUTE dulu sebelum pause
-  // Ini fix audio yang masih nyaring saat pindah halaman di Chrome Android
+  // Keluar dari home — mute + volume 0 + pause
+  // volume=0 sebagai double-kill: Chrome Android kadang masih emit audio
+  // meski muted=true kalau audio context belum di-suspend
   wasPlayingBeforeLeave = false;
   slides.forEach((s, i) => {
     const vid = s.querySelector('video');
     if (!vid.paused) {
       if (i === current) wasPlayingBeforeLeave = true;
-      vid.muted = true;  // mute dulu sebelum pause — fix audio ghost Chrome
-      vid.pause();
     }
+    // Selalu mute dan set volume 0, terlepas apakah sedang play atau tidak
+    vid.volume = 0;
+    vid.muted  = true;
+    vid.pause();
   });
 
   if (name === 'explore') {

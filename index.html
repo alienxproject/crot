@@ -56,10 +56,10 @@ body {
   pointer-events: none; z-index: 3;
 }
 
-/* Info (title + views) */
+/* Info (title + views) — bottom relatif feed container */
 .info {
   position: absolute;
-  bottom: max(72px, calc(56px + var(--safe-bot)));
+  bottom: 30px;
   left: 14px; right: 80px;
   z-index: 5; color: #fff;
 }
@@ -70,10 +70,11 @@ body {
 }
 .info span { font-size: 12px; opacity: 0.7; }
 
-/* Progress bar */
+/* Progress bar — feed sudah di-clip oleh #feed height (tidak include navbar)
+   Jadi bottom 0 = tepat di batas bawah feed. Beri jarak 10px dari bawah feed. */
 .prog-wrap {
   position: absolute;
-  bottom: max(52px, calc(40px + var(--safe-bot)));
+  bottom: 10px;
   left: 0; right: 0; height: 3px;
   background: rgba(255,255,255,0.25);
   z-index: 6; cursor: pointer;
@@ -94,24 +95,6 @@ body {
   text-shadow: 0 2px 16px rgba(0,0,0,0.5);
 }
 .play-icon.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-
-/* Double tap heart */
-.heart-anim {
-  position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  font-size: 90px; z-index: 10;
-  pointer-events: none; opacity: 0;
-  transition: none;
-}
-.heart-anim.pop {
-  animation: heartPop 0.7s ease-out forwards;
-}
-@keyframes heartPop {
-  0%   { transform: translate(-50%, -50%) scale(0); opacity: 1; }
-  40%  { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
-  70%  { transform: translate(-50%, -50%) scale(1.0); opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0; }
-}
 
 /* Spinner */
 .spinner {
@@ -134,7 +117,7 @@ body {
 .side-actions {
   position: absolute;
   right: 10px;
-  bottom: max(82px, calc(68px + var(--safe-bot)));
+  bottom: 24px;
   z-index: 5;
   display: flex; flex-direction: column;
   align-items: center; gap: 18px;
@@ -157,7 +140,10 @@ body {
   border: 1px solid rgba(255,255,255,0.2);
   transition: background 0.2s;
 }
-.action-btn.liked .action-icon { background: rgba(255,50,80,0.35); border-color: rgba(255,50,80,0.5); }
+.action-btn.saved .action-icon {
+  background: rgba(255,220,50,0.3);
+  border-color: rgba(255,220,50,0.6);
+}
 .action-label {
   color: #fff; font-size: 11px; font-weight: 600;
   text-shadow: 0 1px 4px rgba(0,0,0,0.6);
@@ -370,7 +356,7 @@ body {
 
 <!-- LIKES -->
 <div class="page" id="pageLikes">
-  <div class="page-header"><h2>Video Disukai</h2></div>
+  <div class="page-header"><h2>Saved</h2></div>
   <div class="video-grid" id="gridLikes"></div>
 </div>
 
@@ -391,10 +377,10 @@ body {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <span>Search</span>
   </div>
-  <!-- Likes -->
+  <!-- Save -->
   <div class="nav-item" data-page="likes">
-    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-    <span>Likes</span>
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+    <span>Saved</span>
   </div>
 </nav>
 
@@ -443,9 +429,9 @@ let interacted   = false;
 const finished   = new Array(total).fill(false);
 const userPaused = new Array(total).fill(false);
 
-// Likes — simpan di localStorage supaya persist antar session
-let likedSet = new Set(JSON.parse(localStorage.getItem('tiktod_likes') || '[]'));
-function saveLikes() { localStorage.setItem('tiktod_likes', JSON.stringify([...likedSet])); }
+// Saved — simpan di localStorage supaya persist antar session
+let savedSet = new Set(JSON.parse(localStorage.getItem('tiktod_saves') || '[]'));
+function saveSaves() { localStorage.setItem('tiktod_saves', JSON.stringify([...savedSet])); }
 
 // CTA
 let swipeCount = 0, ctaFired = false, hasLeftHome = false;
@@ -483,36 +469,42 @@ vlist.forEach((v, i) => {
   // Play icon
   const playIcon = document.createElement('div'); playIcon.className = 'play-icon';
 
-  // Heart animation
-  const heart = document.createElement('div'); heart.className = 'heart-anim'; heart.textContent = '❤️';
-
   // Spinner
   const spinner = document.createElement('div'); spinner.className = 'spinner';
 
   // Side actions (like + share)
   const sideActions = document.createElement('div'); sideActions.className = 'side-actions';
 
-  const likeBtn = document.createElement('div');
-  likeBtn.className = 'action-btn' + (likedSet.has(v.id) ? ' liked' : '');
-  likeBtn.dataset.vidid = v.id;
-  likeBtn.innerHTML = `
-    <div class="action-icon">${likedSet.has(v.id) ? '❤️' : '🤍'}</div>
-    <span class="action-label like-count">${formatCount(v.likes || 0)}</span>`;
+  // Saved/bookmark icon SVG
+  const ICON_SAVE_OFF = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="22" height="22"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+  const ICON_SAVE_ON  = `<svg viewBox="0 0 24 24" fill="#FFD700" stroke="#FFD700" stroke-width="2" width="22" height="22"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 
-  const shareBtn = document.createElement('div');
-  shareBtn.className = 'action-btn';
-  shareBtn.innerHTML = `
-    <div class="action-icon">↗️</div>
-    <span class="action-label">Share</span>`;
+  const saveBtn = document.createElement('div');
+  saveBtn.className = 'action-btn' + (savedSet.has(v.id) ? ' saved' : '');
+  saveBtn.dataset.vidid = v.id;
+  saveBtn.innerHTML = `
+    <div class="action-icon">${savedSet.has(v.id) ? ICON_SAVE_ON : ICON_SAVE_OFF}</div>
+    <span class="action-label save-label">${savedSet.has(v.id) ? 'Saved' : 'Save'}</span>`;
 
-  sideActions.appendChild(likeBtn);
-  sideActions.appendChild(shareBtn);
+  const dlBtn = document.createElement('div');
+  dlBtn.className = 'action-btn';
+  dlBtn.innerHTML = `
+    <div class="action-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="22" height="22">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+    </div>
+    <span class="action-label">Download</span>`;
+
+  sideActions.appendChild(saveBtn);
+  sideActions.appendChild(dlBtn);
 
   slide.appendChild(vid);
   slide.appendChild(info);
   slide.appendChild(progWrap);
   slide.appendChild(playIcon);
-  slide.appendChild(heart);
   slide.appendChild(spinner);
   slide.appendChild(sideActions);
   feed.appendChild(slide);
@@ -550,25 +542,12 @@ vlist.forEach((v, i) => {
     goTo((current + 1) % total, false, false);
   });
 
-  // ── DOUBLE TAP LIKE ──────────────────────────────────────────────────────
-  let lastTap = 0;
+  // Single tap → play/pause (tidak ada double tap logic)
   slide.addEventListener('click', (e) => {
     if (locked) return;
-    // Abaikan klik dari side actions atau progress bar
     if (e.target.closest('.side-actions') || e.target.closest('.prog-wrap')) return;
     e.stopPropagation();
 
-    const now = Date.now();
-    const tapGap = now - lastTap;
-    lastTap = now;
-
-    if (tapGap < 300) {
-      // Double tap → like
-      triggerLike(i, likeBtn, heart, true);
-      return;
-    }
-
-    // Single tap → play/pause
     interacted = true; vid.muted = false;
     if (vid.paused) {
       userPaused[i] = false;
@@ -581,21 +560,22 @@ vlist.forEach((v, i) => {
     }
   });
 
-  // ── LIKE BUTTON CLICK ────────────────────────────────────────────────────
-  likeBtn.addEventListener('click', (e) => {
+  // ── SAVE BUTTON ─────────────────────────────────────────────────────────
+  saveBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    triggerLike(i, likeBtn, heart, false);
+    triggerSave(i, saveBtn);
   });
 
-  // ── SHARE BUTTON ────────────────────────────────────────────────────────
-  shareBtn.addEventListener('click', (e) => {
+  // ── DOWNLOAD BUTTON ──────────────────────────────────────────────────────
+  dlBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    const url = window.location.href;
-    if (navigator.share) {
-      navigator.share({ title: v.title || 'TikTod', url });
-    } else {
-      navigator.clipboard?.writeText(url).then(() => showToast('Link disalin! 📋')).catch(() => showToast('Share: ' + url));
-    }
+    const url = v.src || (getVid(i).src);
+    if (!url) { showToast('URL video tidak tersedia'); return; }
+    const a = document.createElement('a');
+    a.href = url; a.download = (v.title || 'video') + '.mp4';
+    a.target = '_blank'; // fallback kalau CORS block download
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    showToast('Mengunduh video... ⬇️');
   });
 
   // ── SEEK PROGRESS ────────────────────────────────────────────────────────
@@ -606,44 +586,31 @@ vlist.forEach((v, i) => {
   });
 });
 
-// ── LIKE LOGIC ───────────────────────────────────────────────────────────────
-function formatCount(n) {
-  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
-  if (n >= 1000)    return (n / 1000).toFixed(1) + 'K';
-  return String(n);
-}
+// ── SAVE LOGIC ───────────────────────────────────────────────────────────────
+const ICON_SAVE_OFF_TPL = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="22" height="22"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+const ICON_SAVE_ON_TPL  = `<svg viewBox="0 0 24 24" fill="#FFD700" stroke="#FFD700" stroke-width="2" width="22" height="22"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 
-function triggerLike(i, likeBtn, heart, fromDoubleTap) {
+function triggerSave(i, saveBtn) {
   const v = vlist[i];
-  const isLiked = likedSet.has(v.id);
+  const isSaved = savedSet.has(v.id);
+  const icon  = saveBtn.querySelector('.action-icon');
+  const label = saveBtn.querySelector('.save-label');
 
-  if (fromDoubleTap && isLiked) {
-    // Double tap saat sudah liked → hanya tampilkan animasi heart tanpa unlike
-    animHeart(heart);
-    return;
-  }
-
-  if (isLiked) {
-    likedSet.delete(v.id);
-    likeBtn.classList.remove('liked');
-    likeBtn.querySelector('.action-icon').textContent = '🤍';
-    showToast('Dihapus dari Likes');
+  if (isSaved) {
+    savedSet.delete(v.id);
+    saveBtn.classList.remove('saved');
+    icon.innerHTML  = ICON_SAVE_OFF_TPL;
+    label.textContent = 'Save';
+    showToast('Dihapus dari Saved');
   } else {
-    likedSet.add(v.id);
-    likeBtn.classList.add('liked');
-    likeBtn.querySelector('.action-icon').textContent = '❤️';
-    animHeart(heart);
-    showToast('Ditambahkan ke Likes ❤️');
+    savedSet.add(v.id);
+    saveBtn.classList.add('saved');
+    icon.innerHTML  = ICON_SAVE_ON_TPL;
+    label.textContent = 'Saved';
+    showToast('Tersimpan! 🔖');
   }
-  saveLikes();
-  renderLikesPage();
-}
-
-function animHeart(heart) {
-  heart.classList.remove('pop');
-  void heart.offsetWidth; // reflow trigger
-  heart.classList.add('pop');
-  setTimeout(() => heart.classList.remove('pop'), 700);
+  saveSaves();
+  renderSavedPage();
 }
 
 // ── DOTS ─────────────────────────────────────────────────────────────────────
@@ -822,46 +789,66 @@ document.getElementById('logoHome').addEventListener('click', (e) => {
 // ══════════════════════════════════════════════════════════════════════════════
 
 // ── GRID RENDER ──────────────────────────────────────────────────────────────
+const GRAD_COLORS = ['#1a1a2e','#16213e','#0f3460','#1b1b2f','#162447','#1f4068','#1b262c','#2d132c'];
 function buildGrid(container, list) {
   container.innerHTML = '';
   if (list.length === 0) {
     container.innerHTML = `
       <div class="empty-state" style="grid-column:1/-1">
-        <div class="empty-icon">🤍</div>
-        <p>Belum ada video yang disukai</p>
+        <div class="empty-icon">🔖</div>
+        <p>Belum ada video yang disimpan</p>
       </div>`;
     return;
   }
-  list.forEach((v) => {
+  list.forEach((v, idx) => {
     const item = document.createElement('div');
     item.className = 'grid-item';
 
-    const img = document.createElement('img');
-    img.src  = v.thumb || '';
-    img.alt  = v.title || '';
-    // Fallback kalau thumb kosong — warna solid
-    img.onerror = () => { img.style.display = 'none'; item.style.background = '#1a1a2e'; };
+    const thumb = v.thumb && v.thumb.trim();
+
+    if (thumb) {
+      const img = document.createElement('img');
+      img.src = thumb; img.alt = v.title || '';
+      img.loading = 'lazy';
+      img.onerror = () => {
+        img.remove();
+        item.style.background = GRAD_COLORS[idx % GRAD_COLORS.length];
+        const ph = document.createElement('div');
+        ph.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px;opacity:0.3;';
+        ph.textContent = '🎬';
+        item.appendChild(ph);
+      };
+      item.appendChild(img);
+    } else {
+      // Tidak ada thumb — pakai gradient + icon
+      item.style.background = GRAD_COLORS[idx % GRAD_COLORS.length];
+      const ph = document.createElement('div');
+      ph.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px;opacity:0.3;';
+      ph.textContent = '🎬';
+      item.appendChild(ph);
+    }
 
     const overlay = document.createElement('div'); overlay.className = 'grid-overlay';
     const title   = document.createElement('div'); title.className   = 'grid-title'; title.textContent = v.title || '';
     const views   = document.createElement('div'); views.className   = 'grid-views'; views.textContent = v.views || '';
 
-    item.appendChild(img);
     item.appendChild(overlay);
     item.appendChild(title);
     item.appendChild(views);
 
-    if (likedSet.has(v.id)) {
-      const badge = document.createElement('div'); badge.className = 'like-badge'; badge.textContent = '❤️';
+    // Bookmark badge kalau sudah disave
+    if (savedSet.has(v.id)) {
+      const badge = document.createElement('div');
+      badge.className = 'like-badge';
+      badge.innerHTML = `<svg viewBox="0 0 24 24" fill="#FFD700" width="16" height="16"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
       item.appendChild(badge);
     }
 
     item.addEventListener('click', () => {
-      // Cari index di vlist dan navigasi ke sana
-      const idx = vlist.findIndex(x => x.id === v.id);
-      if (idx === -1) return;
+      const idx2 = vlist.findIndex(x => x.id === v.id);
+      if (idx2 === -1) return;
       switchPage('home');
-      if (idx !== current) { locked = false; goTo(idx, true, false); }
+      if (idx2 !== current) { locked = false; goTo(idx2, true, false); }
     });
 
     container.appendChild(item);
@@ -869,18 +856,18 @@ function buildGrid(container, list) {
 }
 
 function renderExplorePage() { buildGrid(document.getElementById('gridExplore'), vlist); }
-function renderLikesPage() {
-  const liked = vlist.filter(v => likedSet.has(v.id));
+function renderSavedPage() {
+  const saved = vlist.filter(v => savedSet.has(v.id));
   const container = document.getElementById('gridLikes');
-  if (liked.length === 0) {
+  if (saved.length === 0) {
     container.innerHTML = `
       <div class="empty-state" style="grid-column:1/-1">
-        <div class="empty-icon">🤍</div>
-        <p>Belum ada video yang disukai.<br>Double tap video untuk like!</p>
+        <div class="empty-icon">🔖</div>
+        <p>Belum ada video yang disimpan.<br>Tap bookmark untuk save!</p>
       </div>`;
     return;
   }
-  buildGrid(container, liked);
+  buildGrid(container, saved);
 }
 
 // ── SEARCH ───────────────────────────────────────────────────────────────────
@@ -931,7 +918,7 @@ function switchPage(name) {
     document.getElementById('pageSearch').classList.add('active');
     setTimeout(() => document.getElementById('searchInput').focus(), 300);
   } else if (name === 'likes') {
-    renderLikesPage();
+    renderSavedPage();
     document.getElementById('pageLikes').classList.add('active');
   }
 }

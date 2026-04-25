@@ -10,8 +10,9 @@
 
 :root {
   --nav-h: 60px;
-  --safe-bot: env(safe-area-inset-bottom, 0px);
-  --bottom-pad: max(var(--nav-h) + 16px, calc(var(--nav-h) + 8px + var(--safe-bot)));
+  /* --vh di-set oleh JS = 1% dari tinggi visual viewport yang sebenarnya */
+  /* Ini fix Chrome Android dynamic toolbar yang ubah innerHeight */
+  --vh: 1vh; /* fallback, akan di-override JS */
 }
 
 body {
@@ -19,17 +20,20 @@ body {
   font-family: 'Segoe UI', sans-serif;
   overflow: hidden;
   width: 100vw;
-  height: 100vh;
+  /* Pakai custom --vh supaya tidak kepotong toolbar Chrome */
+  height: calc(var(--vh, 1vh) * 100);
   position: fixed;
   user-select: none;
   -webkit-user-select: none;
 }
 
-/* Feed — height di-set oleh JS setelah navbar render
-   Ini lebih reliable dari CSS calc() di Chrome Android */
+/* Feed: isi tinggi = total height - navbar */
 #feed {
-  position: absolute;
-  inset: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* bottom di-set JS secara eksplisit */
   overflow: hidden;
 }
 
@@ -165,7 +169,7 @@ body {
 ═══════════════════════════════════════════ */
 #swipeHint {
   position: fixed;
-  bottom: max(116px, calc(96px + var(--safe-bot)));
+  bottom: 80px; /* di-update JS */
   left: 50%; transform: translateX(-50%);
   z-index: 9999; color: #fff; font-size: 14px; font-weight: 500;
   background: rgba(0,0,0,0.5);
@@ -198,7 +202,8 @@ body {
 ═══════════════════════════════════════════ */
 #navbar {
   position: fixed; bottom: 0; left: 0; right: 0;
-  height: calc(var(--nav-h) + var(--safe-bot));
+  height: auto;
+  padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
   background: rgba(15,15,15,0.96);
   backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
   border-top: 1px solid rgba(255,255,255,0.08);
@@ -223,8 +228,9 @@ body {
    PAGES (Explore, Search, Likes)
 ═══════════════════════════════════════════ */
 .page {
-  position: fixed; inset: 0;
-  /* bottom di-set JS sama seperti #feed */
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  /* bottom di-set JS */
   background: #0a0a0a;
   z-index: 999; overflow-y: auto;
   display: none;
@@ -306,7 +312,7 @@ body {
 
 /* Toast notif */
 #toast {
-  position: fixed; bottom: calc(var(--nav-h) + 20px + var(--safe-bot));
+  position: fixed; bottom: 80px; /* di-update JS */
   left: 50%; transform: translateX(-50%);
   background: rgba(255,255,255,0.15);
   backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -385,32 +391,40 @@ body {
 <script src="data/videos.js"></script>
 <script>
 // ── FEED HEIGHT FIX ──────────────────────────────────────────────────────────
-// Chrome Android tidak update env(safe-area-inset-bottom) dengan benar.
-// Solusi: ukur tinggi navbar via getBoundingClientRect() dan set height via JS.
-// Ini 100% akurat di semua browser karena membaca ukuran DOM yang sudah di-render.
-function fixFeedHeight() {
-  const navbar  = document.getElementById('navbar');
-  const feed    = document.getElementById('feed');
-  const pages   = document.querySelectorAll('.page');
-  const navRect = navbar.getBoundingClientRect();
-  const navTop  = navRect.top; // jarak dari atas viewport ke navbar
+// Chrome Android punya "dynamic toolbar" yang bisa muncul/sembunyi.
+// Saat toolbar muncul, window.innerHeight BERKURANG tapi CSS vh TIDAK berubah.
+// Fix: pakai visualViewport.height yang selalu akurat, set sebagai CSS var --vh.
+// Navbar bottom di-set JS setelah layout selesai.
 
-  // Feed = dari atas (0) sampai tepat di atas navbar
-  feed.style.top    = '0';
-  feed.style.bottom = (window.innerHeight - navTop) + 'px';
+function fixLayout() {
+  const vh   = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+  document.documentElement.style.setProperty('--vh', (vh * 0.01) + 'px');
 
-  // Pages juga sama
-  pages.forEach(p => {
-    p.style.top    = '0';
-    p.style.bottom = (window.innerHeight - navTop) + 'px';
-  });
+  const navbar   = document.getElementById('navbar');
+  const navH     = navbar.offsetHeight;
+  const bottomVal = navH + 'px';
+
+  // Feed dan pages: bottom = tepat di atas navbar
+  document.getElementById('feed').style.bottom = bottomVal;
+  document.querySelectorAll('.page').forEach(p => { p.style.bottom = bottomVal; });
+
+  // Elemen fixed yang posisinya di atas navbar
+  const aboveNav = navH + 20;
+  const hint = document.getElementById('swipeHint');
+  const toast = document.getElementById('toast');
+  if (hint)  hint.style.bottom  = aboveNav + 'px';
+  if (toast) toast.style.bottom = aboveNav + 'px';
 }
 
-// Jalankan sekali saat load, dan saat resize (orientasi berubah)
-window.addEventListener('DOMContentLoaded', fixFeedHeight);
-window.addEventListener('resize',           fixFeedHeight);
-// iOS Safari kadang perlu delay setelah load
-window.addEventListener('load', () => setTimeout(fixFeedHeight, 100));
+// Jalankan segera (sync) — navbar sudah di DOM saat script ini jalan
+fixLayout();
+
+// Update saat toolbar Chrome muncul/sembunyi (mengubah visualViewport.height)
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', fixLayout);
+}
+// Fallback untuk browser tanpa visualViewport
+window.addEventListener('resize', fixLayout);
 </script>
 <script>
 // ── GUARD ────────────────────────────────────────────────────────────────────

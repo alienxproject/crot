@@ -10,9 +10,8 @@
 
 :root {
   --nav-h: 60px;
-  /* --vh di-set oleh JS = 1% dari tinggi visual viewport yang sebenarnya */
-  /* Ini fix Chrome Android dynamic toolbar yang ubah innerHeight */
-  --vh: 1vh; /* fallback, akan di-override JS */
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+  --bottom-pad: max(var(--nav-h) + 16px, calc(var(--nav-h) + 8px + var(--safe-bot)));
 }
 
 body {
@@ -20,20 +19,19 @@ body {
   font-family: 'Segoe UI', sans-serif;
   overflow: hidden;
   width: 100vw;
-  /* Pakai custom --vh supaya tidak kepotong toolbar Chrome */
-  height: calc(var(--vh, 1vh) * 100);
+  height: 100vh;
   position: fixed;
   user-select: none;
   -webkit-user-select: none;
 }
 
-/* Feed: isi tinggi = total height - navbar */
+/* ═══════════════════════════════════════════
+   FEED / SLIDE
+═══════════════════════════════════════════ */
 #feed {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  /* bottom di-set JS secara eksplisit */
+  position: absolute;
+  inset: 0;
+  bottom: calc(var(--nav-h) + var(--safe-bot));
   overflow: hidden;
 }
 
@@ -58,10 +56,10 @@ body {
   pointer-events: none; z-index: 3;
 }
 
-/* Info (title + views) — bottom relatif feed container */
+/* Info (title + views) */
 .info {
   position: absolute;
-  bottom: 30px;
+  bottom: max(72px, calc(56px + var(--safe-bot)));
   left: 14px; right: 80px;
   z-index: 5; color: #fff;
 }
@@ -72,11 +70,10 @@ body {
 }
 .info span { font-size: 12px; opacity: 0.7; }
 
-/* Progress bar — feed sudah di-clip oleh #feed height (tidak include navbar)
-   Jadi bottom 0 = tepat di batas bawah feed. Beri jarak 10px dari bawah feed. */
+/* Progress bar */
 .prog-wrap {
   position: absolute;
-  bottom: 10px;
+  bottom: max(52px, calc(40px + var(--safe-bot)));
   left: 0; right: 0; height: 3px;
   background: rgba(255,255,255,0.25);
   z-index: 6; cursor: pointer;
@@ -97,6 +94,24 @@ body {
   text-shadow: 0 2px 16px rgba(0,0,0,0.5);
 }
 .play-icon.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+/* Double tap heart */
+.heart-anim {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  font-size: 90px; z-index: 10;
+  pointer-events: none; opacity: 0;
+  transition: none;
+}
+.heart-anim.pop {
+  animation: heartPop 0.7s ease-out forwards;
+}
+@keyframes heartPop {
+  0%   { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+  40%  { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+  70%  { transform: translate(-50%, -50%) scale(1.0); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0; }
+}
 
 /* Spinner */
 .spinner {
@@ -119,7 +134,7 @@ body {
 .side-actions {
   position: absolute;
   right: 10px;
-  bottom: 24px;
+  bottom: max(82px, calc(68px + var(--safe-bot)));
   z-index: 5;
   display: flex; flex-direction: column;
   align-items: center; gap: 18px;
@@ -142,10 +157,7 @@ body {
   border: 1px solid rgba(255,255,255,0.2);
   transition: background 0.2s;
 }
-.action-btn.saved .action-icon {
-  background: rgba(255,220,50,0.3);
-  border-color: rgba(255,220,50,0.6);
-}
+.action-btn.liked .action-icon { background: rgba(255,50,80,0.35); border-color: rgba(255,50,80,0.5); }
 .action-label {
   color: #fff; font-size: 11px; font-weight: 600;
   text-shadow: 0 1px 4px rgba(0,0,0,0.6);
@@ -169,7 +181,7 @@ body {
 ═══════════════════════════════════════════ */
 #swipeHint {
   position: fixed;
-  bottom: 80px; /* di-update JS */
+  bottom: max(116px, calc(96px + var(--safe-bot)));
   left: 50%; transform: translateX(-50%);
   z-index: 9999; color: #fff; font-size: 14px; font-weight: 500;
   background: rgba(0,0,0,0.5);
@@ -187,16 +199,22 @@ body {
   50%      { transform: translateX(-50%) translateY(-8px); }
 }
 
-/* Side dots — disembunyikan */
-#dots { display: none !important; }
+/* Side dots */
+#dots {
+  position: fixed; right: 10px; top: 50%;
+  transform: translateY(-50%); z-index: 9999;
+  display: flex; flex-direction: column;
+  gap: 6px; max-height: 60vh; overflow: hidden; align-items: center;
+}
+.dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.3); transition: all 0.2s; flex-shrink: 0; }
+.dot.active { background: #fff; height: 16px; border-radius: 3px; }
 
 /* ═══════════════════════════════════════════
    BOTTOM NAVIGATION BAR
 ═══════════════════════════════════════════ */
 #navbar {
   position: fixed; bottom: 0; left: 0; right: 0;
-  height: auto;
-  padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
+  height: calc(var(--nav-h) + var(--safe-bot));
   background: rgba(15,15,15,0.96);
   backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
   border-top: 1px solid rgba(255,255,255,0.08);
@@ -221,9 +239,8 @@ body {
    PAGES (Explore, Search, Likes)
 ═══════════════════════════════════════════ */
 .page {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  /* bottom di-set JS */
+  position: fixed; inset: 0;
+  bottom: calc(var(--nav-h) + var(--safe-bot));
   background: #0a0a0a;
   z-index: 999; overflow-y: auto;
   display: none;
@@ -305,7 +322,7 @@ body {
 
 /* Toast notif */
 #toast {
-  position: fixed; bottom: 80px; /* di-update JS */
+  position: fixed; bottom: calc(var(--nav-h) + 20px + var(--safe-bot));
   left: 50%; transform: translateX(-50%);
   background: rgba(255,255,255,0.15);
   backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -353,7 +370,7 @@ body {
 
 <!-- LIKES -->
 <div class="page" id="pageLikes">
-  <div class="page-header"><h2>Saved</h2></div>
+  <div class="page-header"><h2>Video Disukai</h2></div>
   <div class="video-grid" id="gridLikes"></div>
 </div>
 
@@ -374,52 +391,14 @@ body {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <span>Search</span>
   </div>
-  <!-- Save -->
+  <!-- Likes -->
   <div class="nav-item" data-page="likes">
-    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
-    <span>Saved</span>
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    <span>Likes</span>
   </div>
 </nav>
 
 <script src="data/videos.js"></script>
-<script>
-// ── FEED HEIGHT FIX ──────────────────────────────────────────────────────────
-// Chrome Android punya "dynamic toolbar" yang bisa muncul/sembunyi.
-// Saat toolbar muncul, window.innerHeight BERKURANG tapi CSS vh TIDAK berubah.
-// Fix: pakai visualViewport.height yang selalu akurat, set sebagai CSS var --vh.
-// Navbar bottom di-set JS setelah layout selesai.
-
-function fixLayout() {
-  const vh   = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
-  document.documentElement.style.setProperty('--vh', (vh * 0.01) + 'px');
-
-  const navbar   = document.getElementById('navbar');
-  const navH     = navbar.offsetHeight;
-  const bottomVal = navH + 'px';
-
-  // Feed dan pages: bottom = tepat di atas navbar
-  document.getElementById('feed').style.bottom = bottomVal;
-  document.querySelectorAll('.page').forEach(p => { p.style.bottom = bottomVal; });
-
-  // Hint lebih tinggi dari title (title ada di ~30-60px dari bawah feed)
-  // Naruh hint di atas title dengan buffer 90px dari atas navbar
-  const aboveNav = navH + 100;
-  const hint = document.getElementById('swipeHint');
-  const toast = document.getElementById('toast');
-  if (hint)  hint.style.bottom  = aboveNav + 'px';
-  if (toast) toast.style.bottom = (navH + 20) + 'px';
-}
-
-// Jalankan segera (sync) — navbar sudah di DOM saat script ini jalan
-fixLayout();
-
-// Update saat toolbar Chrome muncul/sembunyi (mengubah visualViewport.height)
-if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', fixLayout);
-}
-// Fallback untuk browser tanpa visualViewport
-window.addEventListener('resize', fixLayout);
-</script>
 <script>
 // ── GUARD ────────────────────────────────────────────────────────────────────
 if (typeof videos === 'undefined' || !Array.isArray(videos) || videos.length === 0) {
@@ -456,8 +435,7 @@ function showToast(msg) {
 }
 
 // ── STATE ────────────────────────────────────────────────────────────────────
-// Shuffle semua video lalu ambil 10 pertama → selalu random tiap refresh
-const vlist      = shuffle(videos).slice(0, 10);
+const vlist      = shuffle(videos);
 const total      = vlist.length;
 let current      = 0;
 let locked       = false;
@@ -465,9 +443,9 @@ let interacted   = false;
 const finished   = new Array(total).fill(false);
 const userPaused = new Array(total).fill(false);
 
-// Saved — simpan di localStorage supaya persist antar session
-let savedSet = new Set(JSON.parse(localStorage.getItem('tiktod_saves') || '[]'));
-function saveSaves() { localStorage.setItem('tiktod_saves', JSON.stringify([...savedSet])); }
+// Likes — simpan di localStorage supaya persist antar session
+let likedSet = new Set(JSON.parse(localStorage.getItem('tiktod_likes') || '[]'));
+function saveLikes() { localStorage.setItem('tiktod_likes', JSON.stringify([...likedSet])); }
 
 // CTA
 let swipeCount = 0, ctaFired = false, hasLeftHome = false;
@@ -478,9 +456,7 @@ const swipeHint = document.getElementById('swipeHint');
 const slides  = [];
 
 // ── BUILD FEED DOM ────────────────────────────────────────────────────────────
-
-// Fungsi build 1 slide — bisa dipanggil untuk feed awal maupun tambah dinamis
-function buildSlide(v, i, isFirst) {
+vlist.forEach((v, i) => {
   const slide = document.createElement('div');
   slide.className = 'slide';
 
@@ -489,7 +465,7 @@ function buildSlide(v, i, isFirst) {
   vid.setAttribute('webkit-playsinline', '');
   vid.muted = true; vid.preload = 'none'; vid.loop = false;
   if (v.thumb) vid.poster = v.thumb;
-  if (isFirst) { vid.src = v.src; vid.preload = 'metadata'; }
+  if (i === 0) { vid.src = v.src; vid.preload = 'metadata'; }
   else          vid.dataset.src = v.src;
 
   // Info
@@ -507,59 +483,42 @@ function buildSlide(v, i, isFirst) {
   // Play icon
   const playIcon = document.createElement('div'); playIcon.className = 'play-icon';
 
+  // Heart animation
+  const heart = document.createElement('div'); heart.className = 'heart-anim'; heart.textContent = '❤️';
+
   // Spinner
   const spinner = document.createElement('div'); spinner.className = 'spinner';
 
   // Side actions (like + share)
   const sideActions = document.createElement('div'); sideActions.className = 'side-actions';
 
-  // Saved/bookmark icon SVG
-  const ICON_SAVE_OFF = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="22" height="22"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
-  const ICON_SAVE_ON  = `<svg viewBox="0 0 24 24" fill="#FFD700" stroke="#FFD700" stroke-width="2" width="22" height="22"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+  const likeBtn = document.createElement('div');
+  likeBtn.className = 'action-btn' + (likedSet.has(v.id) ? ' liked' : '');
+  likeBtn.dataset.vidid = v.id;
+  likeBtn.innerHTML = `
+    <div class="action-icon">${likedSet.has(v.id) ? '❤️' : '🤍'}</div>
+    <span class="action-label like-count">${formatCount(v.likes || 0)}</span>`;
 
-  const saveBtn = document.createElement('div');
-  saveBtn.className = 'action-btn' + (savedSet.has(v.id) ? ' saved' : '');
-  saveBtn.dataset.vidid = v.id;
-  saveBtn.innerHTML = `
-    <div class="action-icon">${savedSet.has(v.id) ? ICON_SAVE_ON : ICON_SAVE_OFF}</div>
-    <span class="action-label save-label">${savedSet.has(v.id) ? 'Saved' : 'Save'}</span>`;
+  const shareBtn = document.createElement('div');
+  shareBtn.className = 'action-btn';
+  shareBtn.innerHTML = `
+    <div class="action-icon">↗️</div>
+    <span class="action-label">Share</span>`;
 
-  const dlBtn = document.createElement('div');
-  dlBtn.className = 'action-btn';
-  dlBtn.innerHTML = `
-    <div class="action-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="22" height="22">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="7 10 12 15 17 10"/>
-        <line x1="12" y1="15" x2="12" y2="3"/>
-      </svg>
-    </div>
-    <span class="action-label">Download</span>`;
-
-  sideActions.appendChild(saveBtn);
-  sideActions.appendChild(dlBtn);
+  sideActions.appendChild(likeBtn);
+  sideActions.appendChild(shareBtn);
 
   slide.appendChild(vid);
   slide.appendChild(info);
   slide.appendChild(progWrap);
   slide.appendChild(playIcon);
+  slide.appendChild(heart);
   slide.appendChild(spinner);
   slide.appendChild(sideActions);
-
-  // Return slide — caller yang append ke feed & push ke slides
-  return { slide, vid, progFill, playIcon, spinner, saveBtn, dlBtn, progWrap };
-}
-
-// Build semua slide awal dari vlist
-vlist.forEach((v, i) => {
-  const { slide, vid, progFill, playIcon, spinner, saveBtn, dlBtn, progWrap } = buildSlide(v, i, i === 0);
   feed.appendChild(slide);
   slides.push(slide);
-  attachSlideEvents(v, i, vid, progFill, playIcon, spinner, saveBtn, dlBtn, progWrap);
-});
 
-// Fungsi attach events — dipisah supaya bisa dipanggil untuk slide dinamis
-function attachSlideEvents(v, i, vid, progFill, playIcon, spinner, saveBtn, dlBtn, progWrap) {
+  // ── EVENTS ──
 
   vid.addEventListener('timeupdate', () => {
     if (vid.duration) progFill.style.width = (vid.currentTime / vid.duration * 100) + '%';
@@ -588,15 +547,28 @@ function attachSlideEvents(v, i, vid, progFill, playIcon, spinner, saveBtn, dlBt
   vid.addEventListener('ended', () => {
     if (i !== current) return;
     finished[i] = true; locked = false;
-    goTo((current + 1) % vlist.length, false, false);
+    goTo((current + 1) % total, false, false);
   });
 
-  // Single tap → play/pause (tidak ada double tap logic)
+  // ── DOUBLE TAP LIKE ──────────────────────────────────────────────────────
+  let lastTap = 0;
   slide.addEventListener('click', (e) => {
     if (locked) return;
+    // Abaikan klik dari side actions atau progress bar
     if (e.target.closest('.side-actions') || e.target.closest('.prog-wrap')) return;
     e.stopPropagation();
 
+    const now = Date.now();
+    const tapGap = now - lastTap;
+    lastTap = now;
+
+    if (tapGap < 300) {
+      // Double tap → like
+      triggerLike(i, likeBtn, heart, true);
+      return;
+    }
+
+    // Single tap → play/pause
     interacted = true; vid.muted = false;
     if (vid.paused) {
       userPaused[i] = false;
@@ -609,22 +581,21 @@ function attachSlideEvents(v, i, vid, progFill, playIcon, spinner, saveBtn, dlBt
     }
   });
 
-  // ── SAVE BUTTON ─────────────────────────────────────────────────────────
-  saveBtn.addEventListener('click', (e) => {
+  // ── LIKE BUTTON CLICK ────────────────────────────────────────────────────
+  likeBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    triggerSave(i, saveBtn);
+    triggerLike(i, likeBtn, heart, false);
   });
 
-  // ── DOWNLOAD BUTTON ──────────────────────────────────────────────────────
-  dlBtn.addEventListener('click', (e) => {
+  // ── SHARE BUTTON ────────────────────────────────────────────────────────
+  shareBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    const url = v.src || (getVid(i).src);
-    if (!url) { showToast('URL video tidak tersedia'); return; }
-    const a = document.createElement('a');
-    a.href = url; a.download = (v.title || 'video') + '.mp4';
-    a.target = '_blank'; // fallback kalau CORS block download
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    showToast('Mengunduh video... ⬇️');
+    const url = window.location.href;
+    if (navigator.share) {
+      navigator.share({ title: v.title || 'TikTod', url });
+    } else {
+      navigator.clipboard?.writeText(url).then(() => showToast('Link disalin! 📋')).catch(() => showToast('Share: ' + url));
+    }
   });
 
   // ── SEEK PROGRESS ────────────────────────────────────────────────────────
@@ -633,52 +604,46 @@ function attachSlideEvents(v, i, vid, progFill, playIcon, spinner, saveBtn, dlBt
     if (!vid.duration) return;
     vid.currentTime = ((e.clientX - progWrap.getBoundingClientRect().left) / progWrap.offsetWidth) * vid.duration;
   });
-} // end attachSlideEvents
+});
 
-// ── ADD VIDEO KE FEED SECARA DINAMIS ─────────────────────────────────────────
-// Dipanggil saat user klik video dari explore/search yang tidak ada di home feed
-function addVideoToFeed(v) {
-  const i = slides.length; // index baru = setelah slide terakhir
-  vlist.push(v);            // tambah ke vlist supaya goTo bisa akses
-
-  // Extend array state
-  finished.push(false);
-  userPaused.push(false);
-  stallTimers.push(null);
-
-  const { slide, vid, progFill, playIcon, spinner, saveBtn, dlBtn, progWrap } = buildSlide(v, i, false);
-  feed.appendChild(slide);
-  slides.push(slide);
-  attachSlideEvents(v, i, vid, progFill, playIcon, spinner, saveBtn, dlBtn, progWrap);
-
-  return i; // kembalikan index slide baru
+// ── LIKE LOGIC ───────────────────────────────────────────────────────────────
+function formatCount(n) {
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000)    return (n / 1000).toFixed(1) + 'K';
+  return String(n);
 }
 
-// ── SAVE LOGIC ───────────────────────────────────────────────────────────────
-const ICON_SAVE_OFF_TPL = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="22" height="22"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
-const ICON_SAVE_ON_TPL  = `<svg viewBox="0 0 24 24" fill="#FFD700" stroke="#FFD700" stroke-width="2" width="22" height="22"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+function triggerLike(i, likeBtn, heart, fromDoubleTap) {
+  const v = vlist[i];
+  const isLiked = likedSet.has(v.id);
 
-function triggerSave(i, saveBtn) {
-  const v      = vlist[i];
-  const isSaved = savedSet.has(v.id);
-  const icon   = saveBtn.querySelector('.action-icon');
-  const label  = saveBtn.querySelector('.save-label');
-
-  if (isSaved) {
-    savedSet.delete(v.id);
-    saveBtn.classList.remove('saved');
-    icon.innerHTML  = ICON_SAVE_OFF_TPL;
-    label.textContent = 'Save';
-    showToast('Dihapus dari Saved');
-  } else {
-    savedSet.add(v.id);
-    saveBtn.classList.add('saved');
-    icon.innerHTML  = ICON_SAVE_ON_TPL;
-    label.textContent = 'Saved';
-    showToast('Tersimpan! 🔖');
+  if (fromDoubleTap && isLiked) {
+    // Double tap saat sudah liked → hanya tampilkan animasi heart tanpa unlike
+    animHeart(heart);
+    return;
   }
-  saveSaves();
-  renderSavedPage();
+
+  if (isLiked) {
+    likedSet.delete(v.id);
+    likeBtn.classList.remove('liked');
+    likeBtn.querySelector('.action-icon').textContent = '🤍';
+    showToast('Dihapus dari Likes');
+  } else {
+    likedSet.add(v.id);
+    likeBtn.classList.add('liked');
+    likeBtn.querySelector('.action-icon').textContent = '❤️';
+    animHeart(heart);
+    showToast('Ditambahkan ke Likes ❤️');
+  }
+  saveLikes();
+  renderLikesPage();
+}
+
+function animHeart(heart) {
+  heart.classList.remove('pop');
+  void heart.offsetWidth; // reflow trigger
+  heart.classList.add('pop');
+  setTimeout(() => heart.classList.remove('pop'), 700);
 }
 
 // ── DOTS ─────────────────────────────────────────────────────────────────────
@@ -691,7 +656,7 @@ vlist.forEach((_, i) => {
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 function getVid(i) { return slides[i].querySelector('video'); }
 function ensureSrc(i) {
-  if (i < 0 || i >= vlist.length) return;
+  if (i < 0 || i >= total) return;
   const v = getVid(i);
   if (!v.src && v.dataset.src) v.src = v.dataset.src;
 }
@@ -772,7 +737,7 @@ function goTo(next, force, isUserSwipe) {
   current = next;
   slides[current].classList.add('active');
   dotsEl.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
-  ensureSrc(current); ensureSrc((current + 1) % vlist.length);
+  ensureSrc(current); ensureSrc((current + 1) % total);
   unloadFarVideos(current);
   if (current === 0 && !interacted) {
     const pi = slides[0].querySelector('.play-icon');
@@ -813,14 +778,14 @@ feed.addEventListener('touchend', (e) => {
   const dy = ty - e.changedTouches[0].clientY, vel = Math.abs(dy) / Math.max(Date.now() - tt, 1);
   if (Math.abs(dy) < 40 && vel < 0.3) return;
   interacted = true; dismissHint();
-  goTo(dy > 0 ? (current + 1) % vlist.length : (current - 1 + vlist.length) % vlist.length, false, true);
+  goTo(dy > 0 ? (current + 1) % total : (current - 1 + total) % total, false, true);
 }, { passive: true });
 
 // ── KEYBOARD ─────────────────────────────────────────────────────────────────
 document.addEventListener('keydown', (e) => {
   if (locked) return;
-  if (e.key === 'ArrowDown') { dismissHint(); goTo((current + 1) % vlist.length, false, true); }
-  if (e.key === 'ArrowUp')   { goTo((current - 1 + vlist.length) % vlist.length, false, true); }
+  if (e.key === 'ArrowDown') { dismissHint(); goTo((current + 1) % total, false, true); }
+  if (e.key === 'ArrowUp')   { goTo((current - 1 + total) % total, false, true); }
   if (e.key === ' ')         { e.preventDefault(); slides[current].click(); }
 });
 
@@ -831,7 +796,7 @@ feed.addEventListener('wheel', (e) => {
   if (locked || wc) return;
   wc = true; setTimeout(() => wc = false, 420);
   dismissHint();
-  goTo(e.deltaY > 0 ? (current + 1) % vlist.length : (current - 1 + vlist.length) % vlist.length, false, true);
+  goTo(e.deltaY > 0 ? (current + 1) % total : (current - 1 + total) % total, false, true);
 }, { passive: false });
 
 // ── CONTEXT MENU BLOCK ───────────────────────────────────────────────────────
@@ -856,166 +821,72 @@ document.getElementById('logoHome').addEventListener('click', (e) => {
 //  NAVIGATION PAGES
 // ══════════════════════════════════════════════════════════════════════════════
 
-// ── AUTO THUMBNAIL GENERATOR ─────────────────────────────────────────────────
-// Snap frame dari video menggunakan canvas — tidak perlu URL jpg sama sekali.
-// Cache thumbnail di memori (thumbCache) supaya tidak di-generate ulang tiap render.
-const thumbCache = {}; // { videoId: dataURL }
-
-function generateThumb(src, callback) {
-  // Gunakan cache kalau sudah pernah di-generate
-  const key = src;
-  if (thumbCache[key]) { callback(thumbCache[key]); return; }
-
-  const v = document.createElement('video');
-  v.crossOrigin  = 'anonymous';
-  v.muted        = true;
-  v.preload      = 'metadata';
-  v.playsInline  = true;
-
-  v.addEventListener('loadedmetadata', () => {
-    // Seek ke 10% durasi untuk dapat frame yang lebih menarik
-    v.currentTime = Math.max(0.5, v.duration * 0.1);
-  }, { once: true });
-
-  v.addEventListener('seeked', () => {
-    try {
-      const canvas = document.createElement('canvas');
-      // Resolusi kecil untuk hemat memory — 180x320 cukup untuk grid thumbnail
-      canvas.width  = 180;
-      canvas.height = 320;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-      thumbCache[key] = dataUrl;
-      callback(dataUrl);
-    } catch (e) {
-      // CORS atau error lain → callback null, pakai placeholder
-      callback(null);
-    }
-    v.src = ''; // bebaskan memory
-  }, { once: true });
-
-  v.addEventListener('error', () => callback(null), { once: true });
-
-  v.src = src;
-}
-
-// Set thumbnail ke elemen img di grid, dengan fallback placeholder
-function setGridThumb(imgEl, placeholderEl, src, title) {
-  if (!src) { placeholderEl.style.display = 'flex'; return; }
-  generateThumb(src, (dataUrl) => {
-    if (dataUrl) {
-      imgEl.src = dataUrl;
-      imgEl.style.display = 'block';
-      placeholderEl.style.display = 'none';
-    } else {
-      // CORS block snap — pakai placeholder
-      imgEl.style.display = 'none';
-      placeholderEl.style.display = 'flex';
-    }
-  });
-}
-const GRAD_COLORS = ['#1a1a2e','#16213e','#0f3460','#1b1b2f','#162447','#1f4068','#1b262c','#2d132c'];
+// ── GRID RENDER ──────────────────────────────────────────────────────────────
 function buildGrid(container, list) {
   container.innerHTML = '';
   if (list.length === 0) {
     container.innerHTML = `
       <div class="empty-state" style="grid-column:1/-1">
-        <div class="empty-icon">🔖</div>
-        <p>Belum ada video yang disimpan</p>
+        <div class="empty-icon">🤍</div>
+        <p>Belum ada video yang disukai</p>
       </div>`;
     return;
   }
-  list.forEach((v, idx) => {
+  list.forEach((v) => {
     const item = document.createElement('div');
     item.className = 'grid-item';
-    item.style.background = GRAD_COLORS[idx % GRAD_COLORS.length];
 
-    // img — hidden dulu
     const img = document.createElement('img');
-    img.alt = v.title || '';
-    img.style.cssText = 'display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;';
-
-    // placeholder icon
-    const ph = document.createElement('div');
-    ph.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:38px;opacity:0.25;';
-    ph.textContent = '🎬';
-
-    item.appendChild(img);
-    item.appendChild(ph);
-
-    // Prioritas: 1) thumb di videos.js  2) auto-snap dari video src
-    const thumbUrl = v.thumb && v.thumb.trim();
-    const vidSrc   = v.src || '';
-
-    if (thumbUrl) {
-      img.src = thumbUrl;
-      img.onload  = () => { img.style.display = 'block'; ph.style.display = 'none'; };
-      img.onerror = () => {
-        img.style.display = 'none'; ph.style.display = 'flex';
-        if (vidSrc) setGridThumb(img, ph, vidSrc);
-      };
-    } else if (vidSrc) {
-      // Auto-snap dari video
-      setGridThumb(img, ph, vidSrc);
-    }
+    img.src  = v.thumb || '';
+    img.alt  = v.title || '';
+    // Fallback kalau thumb kosong — warna solid
+    img.onerror = () => { img.style.display = 'none'; item.style.background = '#1a1a2e'; };
 
     const overlay = document.createElement('div'); overlay.className = 'grid-overlay';
     const title   = document.createElement('div'); title.className   = 'grid-title'; title.textContent = v.title || '';
     const views   = document.createElement('div'); views.className   = 'grid-views'; views.textContent = v.views || '';
 
+    item.appendChild(img);
     item.appendChild(overlay);
     item.appendChild(title);
     item.appendChild(views);
 
-    if (savedSet.has(v.id)) {
-      const badge = document.createElement('div');
-      badge.className = 'like-badge';
-      badge.innerHTML = `<svg viewBox="0 0 24 24" fill="#FFD700" width="16" height="16"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+    if (likedSet.has(v.id)) {
+      const badge = document.createElement('div'); badge.className = 'like-badge'; badge.textContent = '❤️';
       item.appendChild(badge);
     }
 
     item.addEventListener('click', () => {
-      // Cek apakah video sudah ada di home feed
-      let idx2 = vlist.findIndex(x => x.id === v.id);
-
-      if (idx2 === -1) {
-        // Tidak ada di feed — tambahkan secara dinamis lalu navigate
-        idx2 = addVideoToFeed(v);
-      }
-
+      // Cari index di vlist dan navigasi ke sana
+      const idx = vlist.findIndex(x => x.id === v.id);
+      if (idx === -1) return;
       switchPage('home');
-      locked = false;
-      goTo(idx2, true, false);
+      if (idx !== current) { locked = false; goTo(idx, true, false); }
     });
 
     container.appendChild(item);
   });
 }
 
-// allVideos = semua video (untuk explore, search, saved)
-// vlist = 10 random untuk home feed saja
-const allVideos = shuffle([...videos]);
-
-function renderExplorePage() { buildGrid(document.getElementById('gridExplore'), allVideos); }
-function renderSavedPage() {
-  const saved = allVideos.filter(v => savedSet.has(v.id));
+function renderExplorePage() { buildGrid(document.getElementById('gridExplore'), vlist); }
+function renderLikesPage() {
+  const liked = vlist.filter(v => likedSet.has(v.id));
   const container = document.getElementById('gridLikes');
-  if (saved.length === 0) {
+  if (liked.length === 0) {
     container.innerHTML = `
       <div class="empty-state" style="grid-column:1/-1">
-        <div class="empty-icon">🔖</div>
-        <p>Belum ada video yang disimpan.<br>Tap bookmark untuk save!</p>
+        <div class="empty-icon">🤍</div>
+        <p>Belum ada video yang disukai.<br>Double tap video untuk like!</p>
       </div>`;
     return;
   }
-  buildGrid(container, saved);
+  buildGrid(container, liked);
 }
 
 // ── SEARCH ───────────────────────────────────────────────────────────────────
 function renderSearch(query) {
   const q = query.trim().toLowerCase();
-  const result = q ? allVideos.filter(v => (v.title || '').toLowerCase().includes(q)) : allVideos;
+  const result = q ? vlist.filter(v => (v.title || '').toLowerCase().includes(q)) : vlist;
   buildGrid(document.getElementById('gridSearch'), result);
 }
 
@@ -1026,43 +897,31 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
 // ── PAGE SWITCHER ─────────────────────────────────────────────────────────────
 let currentPage = 'home';
 
-// Track apakah video sedang play saat user keluar ke menu lain
-let wasPlayingBeforeLeave = false;
-
 function switchPage(name) {
   currentPage = name;
-
+  // Navbar active state
   document.querySelectorAll('.nav-item').forEach(item => {
     item.classList.toggle('active', item.dataset.page === name);
   });
 
+  // Show/hide pages
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('logoHome').style.display  = name === 'home' ? '' : 'none';
-  document.getElementById('dots').style.display      = name === 'home' ? '' : 'none';
+  document.getElementById('logoHome').style.display = name === 'home' ? '' : 'none';
+  document.getElementById('dots').style.display     = name === 'home' ? '' : 'none';
   document.getElementById('swipeHint').style.display = name === 'home' ? '' : 'none';
 
   if (name === 'home') {
-    // Balik ke home — resume video jika tadi sedang play dan bukan user pause
+    // Resume video jika ada
     const vid = getVid(current);
-    if (wasPlayingBeforeLeave && !userPaused[current]) {
+    if (vid.paused && !userPaused[current]) {
       vid.muted = !interacted;
       vid.play().catch(() => {});
     }
-    wasPlayingBeforeLeave = false;
     return;
   }
 
-  // Keluar dari home — pause semua video, MUTE dulu sebelum pause
-  // Ini fix audio yang masih nyaring saat pindah halaman di Chrome Android
-  wasPlayingBeforeLeave = false;
-  slides.forEach((s, i) => {
-    const vid = s.querySelector('video');
-    if (!vid.paused) {
-      if (i === current) wasPlayingBeforeLeave = true;
-      vid.muted = true;  // mute dulu sebelum pause — fix audio ghost Chrome
-      vid.pause();
-    }
-  });
+  // Pause video saat pindah halaman
+  slides.forEach(s => s.querySelector('video').pause());
 
   if (name === 'explore') {
     renderExplorePage();
@@ -1072,7 +931,7 @@ function switchPage(name) {
     document.getElementById('pageSearch').classList.add('active');
     setTimeout(() => document.getElementById('searchInput').focus(), 300);
   } else if (name === 'likes') {
-    renderSavedPage();
+    renderLikesPage();
     document.getElementById('pageLikes').classList.add('active');
   }
 }

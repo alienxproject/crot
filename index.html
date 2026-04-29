@@ -65,12 +65,123 @@ body{background:#000;font-family:'Segoe UI',sans-serif;overflow:hidden;width:100
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;gap:12px;text-align:center;grid-column:1/-1}
 .empty-icon{font-size:50px;opacity:.28}
 .empty-state p{color:rgba(255,255,255,.38);font-size:15px}
-#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.14);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:13px;font-weight:500;padding:8px 18px;border-radius:20px;z-index:99999;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .3s}
+/* ── DRAWER BUTTON ── */
+#drawerBtn{position:fixed;top:14px;right:14px;z-index:10001;width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.45);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.18);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .2s}
+#drawerBtn:active{background:rgba(255,255,255,.15)}
+#drawerBtn span{display:block;width:18px;height:2px;background:#fff;border-radius:2px;transition:transform .28s,opacity .28s}
+#drawerBtn.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+#drawerBtn.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+#drawerBtn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* ── DRAWER OVERLAY ── */
+#drawerOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10002;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
+#drawerOverlay.show{opacity:1;visibility:visible}
+
+/* ── DRAWER PANEL ── */
+#drawer{position:fixed;top:0;right:0;bottom:0;width:280px;max-width:85vw;background:#0d0d0d;z-index:10003;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}
+#drawer.open{transform:translateX(0)}
+
+/* Drawer header */
+.dr-header{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:12px;flex-shrink:0}
+.dr-header img{width:72px;height:auto}
+.dr-header-title{color:#fff;font-size:16px;font-weight:700;letter-spacing:.02em}
+.dr-header-sub{color:rgba(255,255,255,.4);font-size:12px;margin-top:2px}
+
+/* Drawer body — scrollable */
+.dr-body{flex:1;padding:8px 0 12px;overflow-y:auto}
+
+/* Section label */
+.dr-section{padding:16px 20px 7px;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;gap:8px;letter-spacing:.06em;text-transform:uppercase;pointer-events:none;cursor:default;user-select:none}
+.dr-home{display:flex;align-items:center;gap:10px;padding:12px 20px;color:rgba(255,255,255,.9);font-size:14px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s;text-decoration:none}
+.dr-home:active{background:rgba(255,255,255,.07)}
+.dr-home svg{width:18px;height:18px;flex-shrink:0;opacity:.7}
+.dr-link{display:block;padding:10px 20px 10px 36px;color:rgba(255,255,255,.65);font-size:14px;text-decoration:none;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s;position:relative;line-height:1.4}
+.dr-link::before{content:'';position:absolute;left:22px;top:50%;transform:translateY(-50%);width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.2)}
+.dr-link:active{color:#fff;background:rgba(255,255,255,.06)}
+.dr-divider{height:1px;background:rgba(255,255,255,.06);margin:4px 0}
+.dr-footer{flex-shrink:0;border-top:1px solid rgba(255,255,255,.07);padding:8px 0 max(16px,env(safe-area-inset-bottom,16px))}
+.dr-footer-item{display:flex;align-items:center;gap:12px;padding:13px 20px;color:rgba(255,255,255,.85);font-size:14px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s}
+.dr-footer-item:active{background:rgba(255,255,255,.07)}
+.dr-footer-item svg{width:20px;height:20px;flex-shrink:0;opacity:.8}
 #toast.show{opacity:1}
 </style>
 </head>
 <body>
 <div id="logoHome"><img src="https://i.ibb.co.com/5XCdSQrN/Tik-Tod-1.png" alt="TikTod"></div>
+
+<!-- Hamburger button -->
+<div id="drawerBtn">
+  <span></span><span></span><span></span>
+</div>
+
+<!-- Overlay backdrop -->
+<div id="drawerOverlay"></div>
+
+<!-- Drawer panel -->
+<div id="drawer">
+  <!-- Header -->
+  <div class="dr-header">
+    <img src="https://i.ibb.co.com/5XCdSQrN/Tik-Tod-1.png" alt="TikTod">
+    <div>
+      <div class="dr-header-title">TikTod</div>
+      <div class="dr-header-sub">Discover videos</div>
+    </div>
+  </div>
+
+  <!-- Body: semua menu langsung tampil tanpa dropdown -->
+  <div class="dr-body">
+
+    <!-- Home — navigasi internal, tutup drawer -->
+    <div class="dr-section">🏠 Home</div>
+    <div class="dr-home" id="drHomeBtn">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      Home
+    </div>
+
+    <div class="dr-divider"></div>
+
+    <!-- Folder — isi link, ganti href sesuai URL tujuan -->
+    <div class="dr-section">📁 Folder</div>
+    <a class="dr-link" href="https://example.com/folder/1" target="_blank" rel="noopener">Folder 1</a>
+    <a class="dr-link" href="https://example.com/folder/2" target="_blank" rel="noopener">Folder 2</a>
+    <a class="dr-link" href="https://example.com/folder/3" target="_blank" rel="noopener">Folder 3</a>
+    <a class="dr-link" href="https://example.com/folder/4" target="_blank" rel="noopener">Folder 4</a>
+    <a class="dr-link" href="https://example.com/folder/5" target="_blank" rel="noopener">Folder 5</a>
+
+    <div class="dr-divider"></div>
+
+    <!-- Trending -->
+    <div class="dr-section">🔥 Trending</div>
+    <a class="dr-link" href="https://example.com/trending/1" target="_blank" rel="noopener">Trending 1</a>
+    <a class="dr-link" href="https://example.com/trending/2" target="_blank" rel="noopener">Trending 2</a>
+    <a class="dr-link" href="https://example.com/trending/3" target="_blank" rel="noopener">Trending 3</a>
+    <a class="dr-link" href="https://example.com/trending/4" target="_blank" rel="noopener">Trending 4</a>
+    <a class="dr-link" href="https://example.com/trending/5" target="_blank" rel="noopener">Trending 5</a>
+
+    <div class="dr-divider"></div>
+
+    <!-- Genre -->
+    <div class="dr-section">⭐ Genre</div>
+    <a class="dr-link" href="https://example.com/genre/1" target="_blank" rel="noopener">Genre 1</a>
+    <a class="dr-link" href="https://example.com/genre/2" target="_blank" rel="noopener">Genre 2</a>
+    <a class="dr-link" href="https://example.com/genre/3" target="_blank" rel="noopener">Genre 3</a>
+    <a class="dr-link" href="https://example.com/genre/4" target="_blank" rel="noopener">Genre 4</a>
+    <a class="dr-link" href="https://example.com/genre/5" target="_blank" rel="noopener">Genre 5</a>
+
+  </div><!-- end dr-body -->
+
+  <!-- Footer -->
+  <div class="dr-footer">
+    <div class="dr-footer-item" id="drSavedBtn">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+      Saved
+    </div>
+    <div class="dr-footer-item" id="drHomeBtnFooter">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      Home
+    </div>
+  </div>
+</div>
 <div id="swipeHint">☝️ swipe up untuk next</div>
 <div id="dots"></div>
 <div id="feed" style="bottom:60px"></div>
@@ -791,6 +902,78 @@ function switchPage(name){
 document.querySelectorAll('.nav-item').forEach(function(item){
   item.addEventListener('click', function(){ switchPage(item.dataset.page); });
 });
+
+// ─── DRAWER ───────────────────────────────────────────────────────────────────
+var drawerBtn     = document.getElementById('drawerBtn');
+var drawerPanel   = document.getElementById('drawer');
+var drawerOverlay = document.getElementById('drawerOverlay');
+var drawerOpen    = false;
+
+function openDrawer() {
+  drawerOpen = true;
+  drawerBtn.classList.add('open');
+  drawerPanel.classList.add('open');
+  drawerOverlay.classList.add('show');
+  // Pause video saat drawer terbuka
+  slides.forEach(function(s){ s.querySelector('video').pause(); });
+}
+
+function closeDrawer() {
+  drawerOpen = false;
+  drawerBtn.classList.remove('open');
+  drawerPanel.classList.remove('open');
+  drawerOverlay.classList.remove('show');
+  // Resume video kalau di home dan tidak user-paused
+  if (curPage === 'home' && !userPaused[cur]) {
+    var v = getVid(cur);
+    v.volume = 1;
+    v.muted  = !interacted;
+    v.play().catch(function(){});
+  }
+}
+
+drawerBtn.addEventListener('click', function(e){
+  e.stopPropagation();
+  drawerOpen ? closeDrawer() : openDrawer();
+});
+
+drawerOverlay.addEventListener('click', closeDrawer);
+
+// Tombol Home di body drawer
+document.getElementById('drHomeBtn').addEventListener('click', function(){
+  closeDrawer();
+  switchPage('home');
+});
+
+// Footer: Saved
+document.getElementById('drSavedBtn').addEventListener('click', function(){
+  closeDrawer();
+  switchPage('likes');
+});
+
+// Footer: Home
+document.getElementById('drHomeBtnFooter').addEventListener('click', function(){
+  closeDrawer();
+  switchPage('home');
+});
+
+// Link .dr-link — tutup drawer saat diklik (link sudah buka tab baru sendiri)
+drawerPanel.querySelectorAll('.dr-link').forEach(function(link){
+  link.addEventListener('click', function(){
+    // Beri sedikit delay agar tab baru sempat terbuka sebelum drawer tutup
+    setTimeout(closeDrawer, 150);
+  });
+});
+
+// Swipe kanan untuk tutup drawer (natural gesture mobile)
+var drSwipeStartX = 0;
+drawerPanel.addEventListener('touchstart', function(e){
+  drSwipeStartX = e.touches[0].clientX;
+}, { passive: true });
+drawerPanel.addEventListener('touchend', function(e){
+  var dx = e.changedTouches[0].clientX - drSwipeStartX;
+  if (dx > 60) closeDrawer(); // swipe kanan = tutup
+}, { passive: true });
 </script>
 </body>
 </html>

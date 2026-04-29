@@ -210,99 +210,131 @@ function applyThumbToGrid(videoId, dataUrl) {
   });
 }
 
-// Snap 1 video: buat hidden video, seek ke 1 detik, drawImage ke canvas, done
-function snapOne(videoId, videoSrc, onDone) {
+// Snap 1 video: buat hidden video, seek ke 10% durasi, drawImage ke canvas
+// generateThumb(src, callback) — callback(dataUrl) atau callback(null) kalau gagal
+function generateThumb(src, callback) {
   var hv = document.createElement('video');
-  hv.muted      = true;
-  hv.preload    = 'metadata';
+  hv.muted     = true;
+  hv.preload   = 'metadata';
   hv.setAttribute('playsinline', '');
-  // JANGAN set crossOrigin — beberapa CDN reject request yang punya Origin header
-  // Tanpa crossOrigin, browser bisa load video tapi canvas mungkin tainted (CORS error)
-  // Ini acceptable — error ditangkap try/catch, fallback ke thumb manual
+
+  // crossOrigin HARUS di-set SEBELUM src — ini yang unlock canvas drawImage
+  // Kalau CDN support CORS (kirim Access-Control-Allow-Origin), ini berhasil
+  // Kalau tidak support, onerror akan terpanggil → kita retry tanpa crossOrigin
+  hv.crossOrigin = 'anonymous';
 
   var settled = false;
-  function finish(dataUrl) {
-    if (settled) return;
-    settled = true;
+  function done(result) {
+    if (settled) return; settled = true;
     clearTimeout(tmo);
-    hv.pause();
-    hv.removeAttribute('src');
-    hv.load(); // release memory
-    onDone(dataUrl);
+    hv.pause(); hv.removeAttribute('src'); hv.load();
+    callback(result);
   }
 
-  // Timeout 6 detik — kalau CDN lambat/tidak respond, skip
-  var tmo = setTimeout(function(){ finish(null); }, 6000);
+  var tmo = setTimeout(function(){ done(null); }, 7000);
 
   hv.addEventListener('loadedmetadata', function(){
-    // Seek ke 1 detik atau 8% durasi, mana yang lebih kecil
-    hv.currentTime = Math.min(1, (hv.duration || 10) * 0.08);
+    // Seek ke 10% durasi — dapat frame yang lebih menarik dari frame 0
+    hv.currentTime = Math.max(0.5, (hv.duration || 10) * 0.1);
   }, { once: true });
 
   hv.addEventListener('seeked', function(){
-    var dataUrl = null;
     try {
       var cv = document.createElement('canvas');
       cv.width = 180; cv.height = 320;
-      cv.getContext('2d').drawImage(hv, 0, 0, 180, 320);
-      var d = cv.toDataURL('image/jpeg', 0.75);
-      // Canvas blank = tainted (CORS) atau frame hitam = length sangat pendek
-      if (d && d.length > 2000) dataUrl = d;
-    } catch(e) { /* CORS block — dataUrl tetap null, pakai fallback thumb */ }
-    finish(dataUrl);
+      var ctx = cv.getContext('2d');
+      ctx.drawImage(hv, 0, 0, 180, 320);
+
+      // Deteksi blank/hitam frame: sample beberapa pixel
+      var px = ctx.getImageData(90, 160, 1, 1).data; // pixel tengah
+      var isBlank = (px[0] < 5 && px[1] < 5 && px[2] < 5); // hampir hitam
+      if (isBlank) { done(null); return; }
+
+      var d = cv.toDataURL('image/jpeg', 0.7);
+      done((d && d.length > 1500) ? d : null);
+    } catch(e) {
+      // SecurityError: tainted canvas — CDN tidak support CORS
+      done(null);
+    }
   }, { once: true });
 
-  hv.addEventListener('error', function(){ finish(null); }, { once: true });
+  hv.addEventListener('error', function(){
+    if (settled) return;
+    // Error dengan crossOrigin → coba ulang TANPA crossOrigin
+    // Beberapa CDN reject request yang punya Origin header
+    settled = false;
+    clearTimeout(tmo);
+    tmo = setTimeout(function(){ done(null); }, 7000);
 
-  hv.src = videoSrc;
+    var hv2 = document.createElement('video');
+    hv2.muted   = true;
+    hv2.preload = 'metadata';
+    hv2.setAttribute('playsinline','');
+    // Tidak set crossOrigin — video mungkin bisa load, tapi canvas mungkin tainted
+
+    hv2.addEventListener('loadedmetadata', function(){
+      hv2.currentTime = Math.max(0.5, (hv2.duration || 10) * 0.1);
+    }, { once: true });
+
+    hv2.addEventListener('seeked', function(){
+      try {
+        var cv = document.createElement('canvas');
+        cv.width = 180; cv.height = 320;
+        var ctx = cv.getContext('2d');
+        ctx.drawImage(hv2, 0, 0, 180, 320);
+        var px = ctx.getImageData(90, 160, 1, 1).data;
+        if (px[0] < 5 && px[1] < 5 && px[2] < 5) { done(null); return; }
+        var d = cv.toDataURL('image/jpeg', 0.7);
+        done((d && d.length > 1500) ? d : null);
+      } catch(e) { done(null); } // CORS block — canvas tainted, fallback ke placeholder
+    }, { once: true });
+
+    hv2.addEventListener('error', function(){ done(null); }, { once: true });
+    hv2.src = src;
+  }, { once: true });
+
+  hv.src = src;
 }
 
-// Jalankan queue satu per satu
+// Jalankan queue satu per satu — tidak spam CDN, hemat bandwidth low-speed
 function runQueue() {
   if (snapRunning || snapQueue.length === 0) return;
   snapRunning = true;
   var item = snapQueue.shift();
+  if (thumbCache[item.id]) { snapRunning = false; runQueue(); return; }
 
-  // Skip kalau sudah ada di cache
-  if (thumbCache[item.id]) {
-    snapRunning = false;
-    setTimeout(runQueue, 0);
-    return;
-  }
-
-  snapOne(item.id, item.src, function(dataUrl){
+  generateThumb(item.src, function(dataUrl){
     if (dataUrl) {
       thumbCache[item.id] = dataUrl;
       applyThumbToGrid(item.id, dataUrl);
     }
     snapRunning = false;
-    // Delay 120ms antar video — tidak spam CDN, ramah low-bandwidth
-    setTimeout(runQueue, 120);
+    setTimeout(runQueue, 100); // 100ms delay antar video
   });
 }
 
-// Mulai snap semua video di background setelah halaman load
-// Prioritaskan video yang dekat dengan index awal (kemungkinan dibuka duluan)
+// Tambah semua video ke queue dan mulai
 function startThumbQueue() {
-  snapQueue = [];
   vlist.forEach(function(v){
-    if (!thumbCache[v.id] && v.src) {
-      snapQueue.push({ id: v.id, src: v.src });
-    }
+    if (!thumbCache[v.id] && v.src) snapQueue.push({ id: v.id, src: v.src });
   });
   runQueue();
 }
 
-// Snap passif saat video playing di feed — update cache seketika
+// Snap passif saat video playing di feed — langsung dari element yang sudah ada
+// Ini juga pakai generateThumb tapi via canvas langsung (video sudah loaded)
 function snapThumbFromPlaying(vidEl, videoId) {
   if (thumbCache[videoId]) return;
   if (vidEl.readyState < 2 || vidEl.currentTime < 0.1) return;
   try {
     var cv = document.createElement('canvas');
     cv.width = 180; cv.height = 320;
-    cv.getContext('2d').drawImage(vidEl, 0, 0, 180, 320);
-    var d = cv.toDataURL('image/jpeg', 0.75);
-    if (d && d.length > 2000) {
+    var ctx = cv.getContext('2d');
+    ctx.drawImage(vidEl, 0, 0, 180, 320);
+    var px = ctx.getImageData(90, 160, 1, 1).data;
+    if (px[0] < 5 && px[1] < 5 && px[2] < 5) return; // blank frame
+    var d = cv.toDataURL('image/jpeg', 0.7);
+    if (d && d.length > 1500) {
       thumbCache[videoId] = d;
       applyThumbToGrid(videoId, d);
     }
@@ -689,10 +721,10 @@ function buildGrid(containerId, list, savedOnly){
   });
 }
 
-// Mulai background snap semua video setelah halaman load
-// Delay 1500ms — beri waktu video pertama mulai load/play dulu
+// Mulai background snap: delay 500ms setelah load
+// Beri waktu video pertama mulai buffering, lalu queue jalan di background
 window.addEventListener('load', function(){
-  setTimeout(startThumbQueue, 1500);
+  setTimeout(startThumbQueue, 500);
 });
 function renderSearch(q){
   q = (q||'').trim().toLowerCase();

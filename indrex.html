@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CLAPSLAP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════
+   CSS VARIABLES & RESET
+═══════════════════════════════════════════════ */
+:root {
+  --bg:        #0a0a0a;
+  --bg2:       #111111;
+  --bg3:       #1a1a1a;
+  --border:    #222222;
+  --text:      #f0f0f0;
+  --text2:     #888888;
+  --text3:     #555555;
+  --accent:    #ff3c3c;
+  --accent2:   #ff6b35;
+  --card-bg:   #111111;
+  --hover:     #1e1e1e;
+  --radius:    10px;
+  --font-head: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+[data-theme="light"] {
+  --bg:      #f5f5f5;
+  --bg2:     #ffffff;
+  --bg3:     #ebebeb;
+  --border:  #dddddd;
+  --text:    #111111;
+  --text2:   #666666;
+  --text3:   #aaaaaa;
+  --card-bg: #ffffff;
+  --hover:   #f0f0f0;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:15px;
+  min-height:100vh;
+}
+a{color:inherit;text-decoration:none;}
+img{display:block;width:100%;}
+button{cursor:pointer;border:none;background:none;font-family:inherit;}
+
+/* ═══════════════════════════════════════════════
+   SCROLLBAR
+═══════════════════════════════════════════════ */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+
+/* ═══════════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════════ */
+#header {
+  position:sticky;top:0;z-index:100;
+  background:var(--bg);
+  border-bottom:1px solid var(--border);
+  padding:0 20px;
+  height:58px;
+  display:flex;align-items:center;gap:16px;
+}
+#logo {
+  font-family:var(--font-head);
+  font-size:22px;font-weight:800;
+  letter-spacing:-0.5px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  white-space:nowrap;flex-shrink:0;
+}
+#search-wrap {
+  flex:1;max-width:500px;
+  position:relative;
+}
+#search-input {
+  width:100%;
+  padding:9px 16px 9px 40px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:50px;
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:14px;
+  outline:none;
+  transition:border-color .2s;
+}
+#search-input:focus{border-color:var(--accent);}
+#search-icon {
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  color:var(--text3);pointer-events:none;
+}
+#search-btn {
+  position:absolute;right:4px;top:50%;transform:translateY(-50%);
+  background:var(--accent);
+  color:#fff;
+  border-radius:50px;
+  padding:5px 14px;
+  font-size:13px;font-weight:600;
+}
+.header-right{display:flex;align-items:center;gap:10px;margin-left:auto;flex-shrink:0;}
+#theme-btn {
+  width:34px;height:34px;
+  border-radius:50%;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  color:var(--text2);
+  font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+#theme-btn:hover{background:var(--hover);color:var(--text);}
+#menu-btn {
+  display:none;
+  width:34px;height:34px;
+  border-radius:8px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  color:var(--text);
+  font-size:18px;
+  align-items:center;justify-content:center;
+}
+
+/* ═══════════════════════════════════════════════
+   FILTER BAR
+═══════════════════════════════════════════════ */
+#filter-bar {
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  padding:0 20px;
+  display:flex;align-items:center;gap:4px;
+  overflow-x:auto;
+  scrollbar-width:none;
+  height:44px;
+  flex-shrink:0;
+}
+#filter-bar::-webkit-scrollbar{display:none;}
+.filter-btn {
+  padding:5px 14px;
+  border-radius:50px;
+  font-size:13px;font-weight:500;
+  color:var(--text2);
+  white-space:nowrap;
+  transition:all .18s;
+  border:1px solid transparent;
+}
+.filter-btn:hover{background:var(--bg3);color:var(--text);}
+.filter-btn.active{
+  background:var(--accent);
+  color:#fff;
+  border-color:var(--accent);
+}
+
+/* ═══════════════════════════════════════════════
+   LAYOUT WRAPPER
+═══════════════════════════════════════════════ */
+#layout {
+  display:flex;
+  max-width:1280px;
+  margin:0 auto;
+  padding:20px 16px;
+  gap:20px;
+  min-height:calc(100vh - 102px);
+}
+
+/* ═══════════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════════ */
+#sidebar {
+  width:190px;
+  flex-shrink:0;
+}
+.sidebar-section{margin-bottom:24px;}
+.sidebar-title {
+  font-family:var(--font-head);
+  font-size:11px;font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-bottom:10px;
+  padding-left:4px;
+}
+.sidebar-link {
+  display:block;
+  padding:7px 10px;
+  border-radius:7px;
+  font-size:13.5px;
+  color:var(--text2);
+  transition:all .15s;
+  cursor:pointer;
+}
+.sidebar-link:hover,.sidebar-link.active{
+  background:var(--bg3);
+  color:var(--text);
+}
+.sidebar-link.active{
+  color:var(--accent);
+  font-weight:500;
+}
+.sidebar-dot {
+  display:inline-block;
+  width:6px;height:6px;
+  border-radius:50%;
+  background:var(--accent);
+  margin-right:8px;
+  vertical-align:middle;
+}
+
+/* ═══════════════════════════════════════════════
+   MAIN CONTENT
+═══════════════════════════════════════════════ */
+#main {width:100%;}
+
+/* Page title */
+.page-title {
+  font-family:var(--font-head);
+  font-size:18px;font-weight:700;
+  margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;
+}
+.page-title span{color:var(--accent);}
+
+/* ═══════════════════════════════════════════════
+   VIDEO GRID — 1 col mobile / 2 col desktop
+═══════════════════════════════════════════════ */
+#video-grid {
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:16px;
+}
+@media(max-width:640px){
+  #video-grid{grid-template-columns:1fr;}
+}
+
+/* ═══════════════════════════════════════════════
+   VIDEO CARD
+═══════════════════════════════════════════════ */
+.video-card {
+  background:var(--card-bg);
+  border-radius:var(--radius);
+  overflow:hidden;
+  border:1px solid var(--border);
+  cursor:pointer;
+  transition:transform .2s,border-color .2s,box-shadow .2s;
+}
+.video-card:hover{
+  transform:translateY(-3px);
+  border-color:var(--accent);
+  box-shadow:0 8px 30px rgba(255,60,60,.12);
+}
+.thumb-wrap {
+  position:relative;
+  aspect-ratio:16/9;
+  background:#1a1a1a;
+  overflow:hidden;
+}
+.thumb-wrap img {
+  width:100%;height:100%;
+  object-fit:cover;
+  transition:transform .3s;
+}
+.video-card:hover .thumb-wrap img{transform:scale(1.04);}
+.thumb-duration {
+  position:absolute;bottom:8px;right:8px;
+  background:rgba(0,0,0,.82);
+  color:#fff;
+  font-size:12px;font-weight:600;
+  padding:2px 7px;
+  border-radius:5px;
+  font-family:var(--font-head);
+}
+.thumb-play {
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0);
+  transition:background .2s;
+}
+.video-card:hover .thumb-play{background:rgba(0,0,0,.3);}
+.thumb-play svg{
+  opacity:0;transform:scale(.8);
+  transition:all .2s;
+}
+.video-card:hover .thumb-play svg{opacity:1;transform:scale(1);}
+.card-info {
+  padding:12px 13px 14px;
+}
+.card-title {
+  font-family:var(--font-head);
+  font-size:14px;font-weight:600;
+  line-height:1.4;
+  margin-bottom:7px;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.card-meta {
+  display:flex;align-items:center;gap:12px;
+  font-size:12px;color:var(--text2);
+}
+.card-meta svg{flex-shrink:0;}
+.badge-hot {
+  display:inline-flex;align-items:center;gap:4px;
+  background:rgba(255,60,60,.15);
+  color:var(--accent);
+  font-size:11px;font-weight:600;
+  padding:2px 8px;border-radius:20px;
+  margin-left:auto;
+}
+
+/* ═══════════════════════════════════════════════
+   PAGINATION
+═══════════════════════════════════════════════ */
+#pagination {
+  display:flex;justify-content:center;align-items:center;
+  gap:6px;margin-top:28px;flex-wrap:wrap;
+}
+.page-btn {
+  width:36px;height:36px;
+  border-radius:8px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  color:var(--text2);
+  font-size:13px;font-weight:600;
+  transition:all .15s;
+}
+.page-btn:hover{background:var(--bg3);color:var(--text);}
+.page-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.page-btn:disabled{opacity:.3;cursor:default;}
+
+/* ═══════════════════════════════════════════════
+   PLAYER PAGE
+═══════════════════════════════════════════════ */
+#player-page{display:none;}
+#player-page.active{display:block;}
+#home-page.hidden{display:none;}
+
+.player-wrap {
+  aspect-ratio:16/9;
+  background:#000;
+  border-radius:var(--radius);
+  overflow:hidden;
+  margin-bottom:16px;
+  border:1px solid var(--border);
+}
+.player-wrap iframe{
+  width:100%;height:100%;border:none;
+}
+.player-title {
+  font-family:var(--font-head);
+  font-size:20px;font-weight:700;
+  line-height:1.35;
+  margin-bottom:12px;
+}
+.player-meta {
+  display:flex;align-items:center;gap:16px;
+  font-size:13px;color:var(--text2);
+  padding-bottom:14px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:14px;
+  flex-wrap:wrap;
+}
+.player-meta-item{display:flex;align-items:center;gap:5px;}
+.player-actions {
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:16px;flex-wrap:wrap;
+}
+.action-btn {
+  display:flex;align-items:center;gap:6px;
+  padding:7px 16px;
+  border-radius:50px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  color:var(--text2);
+  font-size:13px;font-weight:500;
+  transition:all .15s;
+}
+.action-btn:hover{background:var(--hover);color:var(--text);}
+.action-btn.like:hover{border-color:var(--accent);color:var(--accent);}
+.tags-wrap{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px;}
+.tag {
+  padding:4px 12px;
+  border-radius:50px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  font-size:12px;color:var(--text2);
+  cursor:pointer;
+  transition:all .15s;
+}
+.tag:hover{border-color:var(--accent);color:var(--accent);}
+
+/* Player sections */
+.section-title {
+  font-family:var(--font-head);
+  font-size:15px;font-weight:700;
+  margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.section-title::before{
+  content:'';display:block;
+  width:3px;height:18px;
+  background:var(--accent);
+  border-radius:2px;
+}
+
+/* ═══════════════════════════════════════════════
+   SKELETON LOADER
+═══════════════════════════════════════════════ */
+@keyframes shimmer {
+  0%{background-position:-600px 0}
+  100%{background-position:600px 0}
+}
+.skeleton {
+  background:linear-gradient(90deg,var(--bg3) 25%,var(--hover) 50%,var(--bg3) 75%);
+  background-size:1200px 100%;
+  animation:shimmer 1.4s infinite;
+  border-radius:6px;
+}
+.skel-card{background:var(--card-bg);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;}
+.skel-thumb{aspect-ratio:16/9;}
+.skel-line{height:14px;margin:12px 13px 6px;}
+.skel-line.short{width:60%;height:11px;margin-top:0;}
+
+/* ═══════════════════════════════════════════════
+   MOBILE SIDEBAR OVERLAY
+═══════════════════════════════════════════════ */
+#sidebar-overlay {
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.6);
+  z-index:200;
+}
+#sidebar-overlay.open{display:block;}
+#sidebar.mobile-open{
+  position:fixed;left:0;top:0;bottom:0;
+  z-index:201;width:220px;
+  background:var(--bg);
+  border-right:1px solid var(--border);
+  padding:20px 16px;
+  overflow-y:auto;
+}
+
+/* ═══════════════════════════════════════════════
+   EMPTY & ERROR STATES
+═══════════════════════════════════════════════ */
+.empty-state {
+  text-align:center;padding:60px 20px;
+  color:var(--text2);
+}
+.empty-state .icon{font-size:48px;margin-bottom:12px;}
+.empty-state p{font-size:14px;}
+
+/* ═══════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════ */
+#toast {
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--bg2);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:10px 20px;border-radius:50px;
+  font-size:13px;font-weight:500;
+  opacity:0;transition:all .3s;
+  pointer-events:none;z-index:999;
+  white-space:nowrap;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ═══════════════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════════════ */
+#footer {
+  background:var(--bg2);
+  border-top:1px solid var(--border);
+  padding:20px;
+  text-align:center;
+  color:var(--text3);
+  font-size:12px;
+  margin-top:40px;
+}
+#footer strong{color:var(--accent);font-family:var(--font-head);}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════ */
+@media(max-width:900px){
+  #sidebar{display:none;}
+  #menu-btn{display:flex;}
+}
+@media(max-width:600px){
+  #header{padding:0 12px;gap:10px;}
+  #logo{font-size:19px;}
+  #layout{padding:14px 10px;}
+  .player-title{font-size:16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header id="header">
+  <div id="logo" onclick="goHome()" style="cursor:pointer">CLAPSLAP</div>
+
+  <div id="search-wrap">
+    <svg id="search-icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input id="search-input" type="text" placeholder="Cari video..." 
+           onkeydown="if(event.key==='Enter')doSearch()"/>
+    <button id="search-btn" onclick="doSearch()">Cari</button>
+  </div>
+
+  <div class="header-right">
+    <button id="theme-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+    <button id="menu-btn" onclick="openSidebar()">☰</button>
+  </div>
+</header>
+
+<!-- ═══════════════ FILTER BAR ═══════════════ -->
+<div id="filter-bar">
+  <button class="filter-btn active" onclick="setFilter('terbaru',this)">🕐 Terbaru</button>
+  <button class="filter-btn" onclick="setFilter('trending',this)">🔥 Trending</button>
+  <button class="filter-btn" onclick="setFilter('terpopuler',this)">👁 Terpopuler</button>
+  <button class="filter-btn" onclick="setFilter('durasi',this)">⏱ Durasi Panjang</button>
+  <button class="filter-btn" onclick="setFilter('random',this)">🎲 Random</button>
+</div>
+
+<!-- ═══════════════ MOBILE SIDEBAR OVERLAY ═══════════════ -->
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- ═══════════════ LAYOUT ═══════════════ -->
+<div id="layout">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">Menu</div>
+      <a class="sidebar-link active" onclick="goHome()">
+        <span class="sidebar-dot"></span>Beranda
+      </a>
+      <a class="sidebar-link" onclick="setFilter('trending',null)">
+        🔥 Trending
+      </a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">Kategori</div>
+      <div id="sidebar-categories">
+        <div class="skeleton" style="height:13px;margin-bottom:8px;border-radius:4px;"></div>
+        <div class="skeleton" style="height:13px;margin-bottom:8px;width:70%;border-radius:4px;"></div>
+        <div class="skeleton" style="height:13px;margin-bottom:8px;width:85%;border-radius:4px;"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main id="main">
+
+    <!-- HOME PAGE -->
+    <div id="home-page">
+      <div id="page-heading" class="page-title">
+        Video <span>Terbaru</span>
+      </div>
+      <div id="video-grid">
+        <!-- Skeleton loaders -->
+        <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-line skeleton"></div><div class="skel-line short skeleton"></div></div>
+        <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-line skeleton"></div><div class="skel-line short skeleton"></div></div>
+        <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-line skeleton"></div><div class="skel-line short skeleton"></div></div>
+        <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-line skeleton"></div><div class="skel-line short skeleton"></div></div>
+      </div>
+      <div id="pagination"></div>
+    </div>
+
+    <!-- PLAYER PAGE -->
+    <div id="player-page">
+      <!-- Back button -->
+      <button onclick="goHome()" style="display:flex;align-items:center;gap:6px;color:var(--text2);font-size:13px;margin-bottom:14px;padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:50px;">
+        ← Kembali
+      </button>
+
+      <!-- Player -->
+      <div class="player-wrap" id="player-wrap"></div>
+
+      <!-- Info -->
+      <h1 class="player-title" id="player-title">Memuat...</h1>
+      <div class="player-meta" id="player-meta"></div>
+      <div class="player-actions" id="player-actions"></div>
+      <div class="tags-wrap" id="player-tags"></div>
+
+      <!-- Related -->
+      <div class="section-title">Video Terkait</div>
+      <div id="related-grid" class="video-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:28px;">
+        <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-line skeleton"></div></div>
+        <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-line skeleton"></div></div>
+      </div>
+
+      <!-- Trending -->
+      <div class="section-title">🔥 Trending</div>
+      <div id="trending-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;">
+        <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-line skeleton"></div></div>
+        <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-line skeleton"></div></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- FOOTER -->
+<footer id="footer">
+  © 2026 <strong>CLAPSLAP</strong> — All rights reserved.
+</footer>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════
+// Ganti URL ini setelah deploy Cloudflare Worker kamu
+const WORKER_URL = 'https://clapslap-api.zalpro.workers.dev';
+
+// State
+let state = {
+  page: 1,
+  totalPages: 1,
+  filter: 'terbaru',
+  currentFldId: '',
+  allVideos: [],    // cache untuk related/trending
+  categories: [],
+};
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  loadCategories();
+  loadVideos();
+  applyTheme();
+});
+
+// ═══════════════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════════════
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('theme-btn').textContent = isDark ? '🌙' : '☀️';
+  localStorage.setItem('theme', isDark ? 'light' : 'dark');
+}
+function applyTheme() {
+  const saved = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  document.getElementById('theme-btn').textContent = saved === 'dark' ? '☀️' : '🌙';
+}
+
+// ═══════════════════════════════════════════════
+// SIDEBAR MOBILE
+// ═══════════════════════════════════════════════
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('mobile-open');
+  document.getElementById('sidebar-overlay').classList.add('open');
+  document.getElementById('sidebar').style.display = 'block';
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+  if (window.innerWidth <= 900)
+    document.getElementById('sidebar').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════
+// FETCH HELPERS
+// ═══════════════════════════════════════════════
+async function apiFetch(endpoint) {
+  const res = await fetch(WORKER_URL + endpoint);
+  if (!res.ok) throw new Error('Network error');
+  return res.json();
+}
+
+// ═══════════════════════════════════════════════
+// LOAD CATEGORIES (auto-detect dari Lulustream folder)
+// ═══════════════════════════════════════════════
+async function loadCategories() {
+  try {
+    const data = await apiFetch('/folders');
+    const folders = data?.result?.folders || [];
+    state.categories = folders;
+
+    const el = document.getElementById('sidebar-categories');
+    if (!folders.length) {
+      el.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:4px">Tidak ada kategori</div>';
+      return;
+    }
+
+    el.innerHTML = `
+      <a class="sidebar-link" onclick="filterByFolder('',this)">
+        <span class="sidebar-dot"></span>Semua
+      </a>
+      ${folders.map(f => `
+        <a class="sidebar-link" onclick="filterByFolder('${f.fld_id}',this)">
+          ${f.name}
+        </a>
+      `).join('')}
+    `;
+  } catch(e) {
+    document.getElementById('sidebar-categories').innerHTML =
+      '<div style="color:var(--text3);font-size:12px;padding:4px">Gagal memuat</div>';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// LOAD VIDEOS
+// ═══════════════════════════════════════════════
+async function loadVideos(page = 1) {
+  state.page = page;
+  showSkeletons();
+
+  try {
+    let endpoint = '';
+
+    if (state.filter === 'trending') {
+      endpoint = '/trending';
+    } else if (state.filter === 'terpopuler') {
+      endpoint = `/videos?page=${page}&per_page=20&sort=views`;
+      if (state.currentFldId) endpoint += `&fld_id=${state.currentFldId}`;
+    } else if (state.filter === 'durasi') {
+      endpoint = `/videos?page=${page}&per_page=20`;
+      if (state.currentFldId) endpoint += `&fld_id=${state.currentFldId}`;
+    } else if (state.filter === 'random') {
+      endpoint = `/videos?page=${Math.floor(Math.random()*5)+1}&per_page=20`;
+    } else {
+      // terbaru (default)
+      endpoint = `/videos?page=${page}&per_page=20`;
+      if (state.currentFldId) endpoint += `&fld_id=${state.currentFldId}`;
+    }
+
+    const data = await apiFetch(endpoint);
+    let files = data?.result?.files || data?.result || [];
+
+    // Durasi panjang: sort by length
+    if (state.filter === 'durasi') {
+      files = [...files].sort((a,b) => parseInt(b.length||0) - parseInt(a.length||0));
+    }
+
+    state.allVideos = files;
+    state.totalPages = data?.result?.pages || 1;
+
+    renderGrid(files);
+    renderPagination();
+  } catch(e) {
+    document.getElementById('video-grid').innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1">
+        <div class="icon">⚠️</div>
+        <p>Gagal memuat video. Pastikan Worker URL sudah dikonfigurasi.</p>
+        <p style="margin-top:8px;font-size:12px;color:var(--text3)">${e.message}</p>
+      </div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════
+// RENDER GRID
+// ═══════════════════════════════════════════════
+function renderGrid(files, containerId = 'video-grid') {
+  const grid = document.getElementById(containerId);
+  if (!files.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="icon">🎬</div><p>Tidak ada video ditemukan.</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = files.map(v => videoCard(v)).join('');
+}
+
+function videoCard(v) {
+  const thumb = v.thumbnail || `https://img.lulustream.com/${v.file_code}_t.jpg`;
+  const dur   = formatDuration(v.length || v.file_length || 0);
+  const views = formatViews(v.views || v.file_views || 0);
+  const title = v.title || v.file_title || 'Untitled';
+  const code  = v.file_code;
+  const isHot = parseInt(v.views||0) > 5000;
+
+  return `
+    <div class="video-card" onclick="openPlayer('${code}')">
+      <div class="thumb-wrap">
+        <img src="${thumb}" alt="${escHtml(title)}" loading="lazy"
+             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22320%22 height=%22180%22><rect fill=%22%231a1a1a%22 width=%22320%22 height=%22180%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23444%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2228%22>🎬</text></svg>'"/>
+        <div class="thumb-play">
+          <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+            <circle cx="22" cy="22" r="22" fill="rgba(255,60,60,.85)"/>
+            <polygon points="17,13 35,22 17,31" fill="white"/>
+          </svg>
+        </div>
+        ${dur ? `<div class="thumb-duration">${dur}</div>` : ''}
+      </div>
+      <div class="card-info">
+        <div class="card-title">${escHtml(title)}</div>
+        <div class="card-meta">
+          <span style="display:flex;align-items:center;gap:4px">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            ${views}
+          </span>
+          ${isHot ? '<span class="badge-hot">🔥 Hot</span>' : ''}
+        </div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════
+// OPEN PLAYER
+// ═══════════════════════════════════════════════
+async function openPlayer(fileCode) {
+  // Switch pages
+  document.getElementById('home-page').classList.add('hidden');
+  document.getElementById('player-page').classList.add('active');
+  window.scrollTo(0,0);
+  closeSidebar();
+
+  // Set player embed
+  document.getElementById('player-wrap').innerHTML =
+    `<iframe src="https://lulustream.com/e/${fileCode}" 
+             allowfullscreen scrolling="no" 
+             allow="autoplay;fullscreen"></iframe>`;
+
+  // Reset info
+  document.getElementById('player-title').textContent = 'Memuat...';
+  document.getElementById('player-meta').innerHTML = '';
+  document.getElementById('player-actions').innerHTML = '';
+  document.getElementById('player-tags').innerHTML = '';
+
+  // Skeleton related
+  document.getElementById('related-grid').innerHTML = `
+    <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-line skeleton"></div></div>
+    <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-line skeleton"></div></div>`;
+
+  try {
+    // Fetch video detail
+    const data = await apiFetch(`/video/${fileCode}`);
+    const v    = data?.result?.[0] || {};
+
+    const title   = v.file_title || 'Untitled';
+    const views   = formatViews(v.file_views || 0);
+    const dur     = formatDuration(v.file_length || 0);
+    const date    = v.file_created ? v.file_created.split(' ')[0] : '';
+    const tags    = (v.tags || '').split(',').map(t=>t.trim()).filter(Boolean);
+
+    document.title = `${title} — CLAPSLAP`;
+    document.getElementById('player-title').textContent = title;
+
+    document.getElementById('player-meta').innerHTML = `
+      <span class="player-meta-item">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        ${views} views
+      </span>
+      ${dur ? `<span class="player-meta-item">⏱ ${dur}</span>` : ''}
+      ${date ? `<span class="player-meta-item">📅 ${date}</span>` : ''}
+    `;
+
+    document.getElementById('player-actions').innerHTML = `
+      <button class="action-btn like" onclick="toast('Ditambahkan ke favorit!')">
+        ❤️ Suka
+      </button>
+      <button class="action-btn" onclick="copyLink('${fileCode}')">
+        🔗 Bagikan
+      </button>
+    `;
+
+    if (tags.length) {
+      document.getElementById('player-tags').innerHTML =
+        tags.map(t=>`<span class="tag" onclick="searchTag('${t}')">#${t}</span>`).join('');
+    }
+
+    // Related: ambil dari cache atau fetch, filter by tag/folder
+    loadRelatedVideos(fileCode, tags, v.file_fld_id);
+    loadTrendingVideos(fileCode);
+
+  } catch(e) {
+    document.getElementById('player-title').textContent = 'Gagal memuat detail video';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// RELATED VIDEOS
+// ═══════════════════════════════════════════════
+async function loadRelatedVideos(currentCode, tags, fldId) {
+  try {
+    let files = [];
+
+    // Coba fetch dari folder yang sama
+    if (fldId && fldId !== '0') {
+      const data = await apiFetch(`/videos?fld_id=${fldId}&per_page=20`);
+      files = data?.result?.files || [];
+    }
+
+    // Fallback: ambil dari cache
+    if (!files.length && state.allVideos.length) {
+      files = state.allVideos;
+    }
+
+    // Filter: exclude video yang sedang diputar
+    files = files.filter(v => v.file_code !== currentCode).slice(0, 8);
+
+    if (!files.length) {
+      // Fetch video umum sebagai fallback
+      const data = await apiFetch('/videos?per_page=10');
+      files = (data?.result?.files || []).filter(v=>v.file_code !== currentCode).slice(0,6);
+    }
+
+    renderGrid(files, 'related-grid');
+  } catch(e) {
+    document.getElementById('related-grid').innerHTML =
+      '<div style="color:var(--text3);font-size:13px;grid-column:1/-1">Gagal memuat.</div>';
+  }
+}
+
+async function loadTrendingVideos(currentCode) {
+  try {
+    const data  = await apiFetch('/trending');
+    const files = (data?.result?.files || data?.result || [])
+      .filter(v => v.file_code !== currentCode).slice(0, 6);
+    renderGrid(files, 'trending-grid');
+  } catch(e) {
+    document.getElementById('trending-grid').innerHTML = '';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// SEARCH
+// ═══════════════════════════════════════════════
+async function doSearch() {
+  const q = document.getElementById('search-input').value.trim();
+  if (!q) return;
+
+  showSkeletons();
+  goHome(false);
+  document.getElementById('page-heading').innerHTML = `Hasil pencarian: <span>"${escHtml(q)}"</span>`;
+
+  try {
+    const data  = await apiFetch(`/search?q=${encodeURIComponent(q)}`);
+    const files = data?.result?.files || [];
+    state.allVideos = files;
+    renderGrid(files);
+    document.getElementById('pagination').innerHTML = '';
+  } catch(e) {
+    document.getElementById('video-grid').innerHTML =
+      '<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔍</div><p>Gagal mencari video.</p></div>';
+  }
+}
+
+function searchTag(tag) {
+  document.getElementById('search-input').value = tag;
+  doSearch();
+}
+
+// ═══════════════════════════════════════════════
+// FILTERS & NAVIGATION
+// ═══════════════════════════════════════════════
+function setFilter(filter, btn) {
+  state.filter = filter;
+  state.currentFldId = '';
+  state.page = 1;
+
+  // Update active filter btn
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  // Update heading
+  const labels = {
+    terbaru:'Video Terbaru', trending:'🔥 Trending',
+    terpopuler:'👁 Terpopuler', durasi:'⏱ Durasi Panjang', random:'🎲 Random'
+  };
+  document.getElementById('page-heading').innerHTML =
+    `${labels[filter]||'Video'} <span></span>`;
+
+  goHome(false);
+  loadVideos();
+}
+
+function filterByFolder(fldId, el) {
+  state.currentFldId = fldId;
+  state.page = 1;
+
+  document.querySelectorAll('#sidebar-categories .sidebar-link')
+    .forEach(l=>l.classList.remove('active'));
+  if (el) el.classList.add('active');
+
+  // Find folder name
+  const folder = state.categories.find(f=>f.fld_id===fldId);
+  const name   = folder ? folder.name : 'Semua Video';
+  document.getElementById('page-heading').innerHTML = `${name} <span></span>`;
+
+  goHome(false);
+  loadVideos();
+}
+
+function goHome(resetFilter = true) {
+  document.getElementById('home-page').classList.remove('hidden');
+  document.getElementById('player-page').classList.remove('active');
+  document.title = 'CLAPSLAP — Video Streaming';
+
+  if (resetFilter) {
+    state.filter = 'terbaru';
+    state.currentFldId = '';
+    document.querySelectorAll('.filter-btn').forEach((b,i)=>{
+      b.classList.toggle('active', i===0);
+    });
+    document.getElementById('page-heading').innerHTML = 'Video <span>Terbaru</span>';
+    loadVideos();
+  }
+  window.scrollTo(0,0);
+}
+
+// ═══════════════════════════════════════════════
+// PAGINATION
+// ═══════════════════════════════════════════════
+function renderPagination() {
+  const el = document.getElementById('pagination');
+  const { page, totalPages } = state;
+  if (totalPages <= 1) { el.innerHTML=''; return; }
+
+  let html = `<button class="page-btn" ${page===1?'disabled':''} onclick="loadVideos(${page-1})">←</button>`;
+
+  const range = pagRange(page, totalPages);
+  let last = 0;
+  range.forEach(p => {
+    if (p - last > 1) html += `<span style="color:var(--text3);padding:0 4px">…</span>`;
+    html += `<button class="page-btn ${p===page?'active':''}" onclick="loadVideos(${p})">${p}</button>`;
+    last = p;
+  });
+
+  html += `<button class="page-btn" ${page===totalPages?'disabled':''} onclick="loadVideos(${page+1})">→</button>`;
+  el.innerHTML = html;
+}
+
+function pagRange(current, total) {
+  const delta = 2;
+  const range = [];
+  for (let i = Math.max(1, current-delta); i <= Math.min(total, current+delta); i++) range.push(i);
+  if (range[0] > 1) range.unshift(1);
+  if (range[range.length-1] < total) range.push(total);
+  return range;
+}
+
+// ═══════════════════════════════════════════════
+// SKELETON
+// ═══════════════════════════════════════════════
+function showSkeletons() {
+  document.getElementById('video-grid').innerHTML = Array(6).fill(`
+    <div class="skel-card">
+      <div class="skel-thumb skeleton"></div>
+      <div class="skel-line skeleton"></div>
+      <div class="skel-line short skeleton"></div>
+    </div>`).join('');
+  document.getElementById('pagination').innerHTML = '';
+}
+
+// ═══════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════
+function formatDuration(seconds) {
+  const s = parseInt(seconds) || 0;
+  if (!s) return '';
+  const m = Math.floor(s/60), sec = s%60;
+  const h = Math.floor(m/60), min = m%60;
+  if (h > 0) return `${h}:${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  return `${min}:${String(sec).padStart(2,'0')}`;
+}
+
+function formatViews(n) {
+  const num = parseInt(n)||0;
+  if (num >= 1000000) return (num/1000000).toFixed(1)+'M';
+  if (num >= 1000) return (num/1000).toFixed(1)+'k';
+  return num.toString();
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function copyLink(code) {
+  const url = `${location.origin}${location.pathname}?v=${code}`;
+  navigator.clipboard?.writeText(url).then(()=>toast('Link disalin!')).catch(()=>toast('Gagal menyalin'));
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 2500);
+}
+
+// ═══════════════════════════════════════════════
+// URL PARAMS — buka video langsung dari URL ?v=xxx
+// ═══════════════════════════════════════════════
+const urlParams = new URLSearchParams(location.search);
+const vParam    = urlParams.get('v');
+if (vParam) {
+  document.addEventListener('DOMContentLoaded', () => openPlayer(vParam));
+}
+</script>
+</body>
+</html>

@@ -2,1109 +2,1736 @@
 <html lang="id" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
 <title>CLAPSLAP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
-/* ═══════════════════════════════════════════════
-   CSS VARIABLES & RESET
-═══════════════════════════════════════════════ */
-:root {
-  --bg:        #0a0a0a;
-  --bg2:       #111111;
-  --bg3:       #1a1a1a;
-  --border:    #222222;
-  --text:      #f0f0f0;
-  --text2:     #888888;
-  --text3:     #555555;
-  --accent:    #ff3c3c;
-  --accent2:   #ff6b35;
-  --card-bg:   #111111;
-  --hover:     #1e1e1e;
-  --radius:    10px;
-  --font-head: 'Syne', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
+/* ════════════════════════════════════════
+   VARIABLES
+════════════════════════════════════════ */
+:root{
+  --bg:       #0c0c0c;
+  --bg2:      #141414;
+  --bg3:      #1c1c1c;
+  --bg4:      #242424;
+  --border:   rgba(255,255,255,.07);
+  --text:     #f2f2f2;
+  --text2:    #888;
+  --text3:    #444;
+  --accent:   #ff4500;
+  --accent2:  #ff7a00;
+  --green:    #22c55e;
+  --blur:     blur(20px);
+  --r:        16px;
+  --rr:       22px;
+  --font-d:   'Bebas Neue', sans-serif;
+  --font-b:   'Manrope', sans-serif;
+  --nav-h:    64px;
+  --hdr-h:    56px;
 }
-[data-theme="light"] {
-  --bg:      #f5f5f5;
-  --bg2:     #ffffff;
-  --bg3:     #ebebeb;
-  --border:  #dddddd;
-  --text:    #111111;
-  --text2:   #666666;
-  --text3:   #aaaaaa;
-  --card-bg: #ffffff;
-  --hover:   #f0f0f0;
+[data-theme="light"]{
+  --bg:    #f0f0f0;
+  --bg2:   #ffffff;
+  --bg3:   #e8e8e8;
+  --bg4:   #ddd;
+  --border:rgba(0,0,0,.08);
+  --text:  #111;
+  --text2: #666;
+  --text3: #bbb;
 }
-*{margin:0;padding:0;box-sizing:border-box;}
+
+/* ════════════════════════════════════════
+   RESET
+════════════════════════════════════════ */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html{scroll-behavior:smooth;}
 body{
   background:var(--bg);
   color:var(--text);
-  font-family:var(--font-body);
-  font-size:15px;
+  font-family:var(--font-b);
   min-height:100vh;
+  padding-bottom:var(--nav-h);
+  overflow-x:hidden;
 }
 a{color:inherit;text-decoration:none;}
-img{display:block;width:100%;}
-button{cursor:pointer;border:none;background:none;font-family:inherit;}
+img{display:block;}
+button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit;}
+input,select,textarea{font-family:inherit;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px;}
 
-/* ═══════════════════════════════════════════════
-   SCROLLBAR
-═══════════════════════════════════════════════ */
-::-webkit-scrollbar{width:5px;height:5px;}
-::-webkit-scrollbar-track{background:var(--bg);}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
-
-/* ═══════════════════════════════════════════════
+/* ════════════════════════════════════════
    HEADER
-═══════════════════════════════════════════════ */
-#header {
-  position:sticky;top:0;z-index:100;
-  background:var(--bg);
+════════════════════════════════════════ */
+#header{
+  position:sticky;top:0;z-index:90;
+  height:var(--hdr-h);
+  display:flex;flex-direction:column;
+  background:rgba(12,12,12,.7);
+  backdrop-filter:var(--blur);
+  -webkit-backdrop-filter:var(--blur);
   border-bottom:1px solid var(--border);
-  padding:0 20px;
-  height:58px;
-  display:flex;align-items:center;gap:16px;
+  transition:transform .3s ease;
 }
-#logo {
-  font-family:var(--font-head);
-  font-size:22px;font-weight:800;
-  letter-spacing:-0.5px;
+#header.hide{transform:translateY(calc(-100% - 1px));}
+[data-theme="light"] #header{background:rgba(240,240,240,.75);}
+
+.hdr-row{
+  height:var(--hdr-h);
+  display:flex;align-items:center;
+  padding:0 16px;gap:12px;
+}
+#logo{
+  font-family:var(--font-d);
+  font-size:26px;letter-spacing:1px;
   background:linear-gradient(135deg,var(--accent),var(--accent2));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  white-space:nowrap;flex-shrink:0;
+  flex-shrink:0;cursor:pointer;
 }
-#search-wrap {
-  flex:1;max-width:500px;
+.hdr-spacer{flex:1;}
+.hdr-icon-btn{
+  width:38px;height:38px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  flex-shrink:0;
+  transition:background .15s;
   position:relative;
 }
-#search-input {
+.hdr-icon-btn:hover{background:var(--bg4);}
+.hdr-icon-btn img{width:18px;height:18px;opacity:.8;filter:var(--icon-filter,none);}
+[data-theme="light"] .hdr-icon-btn img{filter:invert(1);}
+
+/* Notif badge */
+.notif-dot{
+  position:absolute;top:6px;right:6px;
+  width:8px;height:8px;
+  background:var(--accent);
+  border-radius:50%;
+  border:2px solid var(--bg);
+}
+
+/* ════════════════════════════════════════
+   SEARCH OVERLAY
+════════════════════════════════════════ */
+#search-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.85);
+  backdrop-filter:var(--blur);
+  display:flex;flex-direction:column;
+  padding:60px 20px 20px;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s;
+}
+#search-overlay.open{opacity:1;pointer-events:all;}
+#search-overlay .close-search{
+  position:absolute;top:16px;right:16px;
+  width:36px;height:36px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg3);border-radius:50%;
+  font-size:18px;color:var(--text2);
+}
+#search-input-main{
   width:100%;
-  padding:9px 16px 9px 40px;
-  background:var(--bg3);
+  padding:14px 20px;
+  background:var(--bg2);
   border:1px solid var(--border);
   border-radius:50px;
   color:var(--text);
-  font-family:var(--font-body);
-  font-size:14px;
+  font-size:16px;
   outline:none;
   transition:border-color .2s;
 }
-#search-input:focus{border-color:var(--accent);}
-#search-icon {
-  position:absolute;left:14px;top:50%;transform:translateY(-50%);
-  color:var(--text3);pointer-events:none;
-}
-#search-btn {
-  position:absolute;right:4px;top:50%;transform:translateY(-50%);
-  background:var(--accent);
-  color:#fff;
-  border-radius:50px;
-  padding:5px 14px;
-  font-size:13px;font-weight:600;
-}
-.header-right{display:flex;align-items:center;gap:10px;margin-left:auto;flex-shrink:0;}
-#theme-btn {
-  width:34px;height:34px;
-  border-radius:50%;
-  background:var(--bg3);
-  border:1px solid var(--border);
-  color:var(--text2);
-  font-size:16px;
-  display:flex;align-items:center;justify-content:center;
-  transition:all .2s;
-}
-#theme-btn:hover{background:var(--hover);color:var(--text);}
-#menu-btn {
-  display:none;
-  width:34px;height:34px;
-  border-radius:8px;
-  background:var(--bg3);
-  border:1px solid var(--border);
-  color:var(--text);
-  font-size:18px;
-  align-items:center;justify-content:center;
-}
-
-/* ═══════════════════════════════════════════════
-   FILTER BAR
-═══════════════════════════════════════════════ */
-#filter-bar {
-  background:var(--bg2);
+#search-input-main:focus{border-color:var(--accent);}
+#search-history{margin-top:20px;}
+.sh-title{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
+.sh-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 0;
   border-bottom:1px solid var(--border);
-  padding:0 20px;
-  display:flex;align-items:center;gap:4px;
-  overflow-x:auto;
-  scrollbar-width:none;
-  height:44px;
-  flex-shrink:0;
+  cursor:pointer;color:var(--text2);font-size:14px;
 }
-#filter-bar::-webkit-scrollbar{display:none;}
-.filter-btn {
-  padding:5px 14px;
+.sh-item:hover{color:var(--text);}
+
+/* ════════════════════════════════════════
+   CHIP BAR (Genre filter)
+════════════════════════════════════════ */
+#chip-bar{
+  display:flex;gap:7px;
+  padding:10px 16px;
+  overflow-x:auto;scrollbar-width:none;
+  background:rgba(12,12,12,.6);
+  backdrop-filter:var(--blur);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:var(--hdr-h);z-index:80;
+}
+#chip-bar::-webkit-scrollbar{display:none;}
+[data-theme="light"] #chip-bar{background:rgba(240,240,240,.6);}
+.chip{
+  padding:6px 15px;
   border-radius:50px;
-  font-size:13px;font-weight:500;
+  font-size:12px;font-weight:600;
   color:var(--text2);
-  white-space:nowrap;
-  transition:all .18s;
-  border:1px solid transparent;
-}
-.filter-btn:hover{background:var(--bg3);color:var(--text);}
-.filter-btn.active{
-  background:var(--accent);
-  color:#fff;
-  border-color:var(--accent);
-}
-
-/* ═══════════════════════════════════════════════
-   LAYOUT WRAPPER
-═══════════════════════════════════════════════ */
-#layout {
-  display:flex;
-  max-width:1280px;
-  margin:0 auto;
-  padding:20px 16px;
-  gap:20px;
-  min-height:calc(100vh - 102px);
-}
-
-/* ═══════════════════════════════════════════════
-   SIDEBAR
-═══════════════════════════════════════════════ */
-#sidebar {
-  width:190px;
-  flex-shrink:0;
-}
-.sidebar-section{margin-bottom:24px;}
-.sidebar-title {
-  font-family:var(--font-head);
-  font-size:11px;font-weight:700;
-  letter-spacing:1.5px;
-  text-transform:uppercase;
-  color:var(--text3);
-  margin-bottom:10px;
-  padding-left:4px;
-}
-.sidebar-link {
-  display:block;
-  padding:7px 10px;
-  border-radius:7px;
-  font-size:13.5px;
-  color:var(--text2);
-  transition:all .15s;
-  cursor:pointer;
-}
-.sidebar-link:hover,.sidebar-link.active{
   background:var(--bg3);
-  color:var(--text);
+  border:1px solid var(--border);
+  white-space:nowrap;
+  transition:all .15s;flex-shrink:0;
 }
-.sidebar-link.active{
-  color:var(--accent);
-  font-weight:500;
-}
-.sidebar-dot {
-  display:inline-block;
-  width:6px;height:6px;
-  border-radius:50%;
-  background:var(--accent);
-  margin-right:8px;
-  vertical-align:middle;
+.chip:hover{color:var(--text);background:var(--bg4);}
+.chip.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+/* ════════════════════════════════════════
+   PAGES
+════════════════════════════════════════ */
+.page{display:none;}
+.page.active{display:block;}
+
+/* ════════════════════════════════════════
+   MAIN CONTENT WRAP
+════════════════════════════════════════ */
+#content{
+  max-width:700px;
+  margin:0 auto;
+  padding:16px 12px;
 }
 
-/* ═══════════════════════════════════════════════
-   MAIN CONTENT
-═══════════════════════════════════════════════ */
-#main {width:100%;}
-
-/* Page title */
-.page-title {
-  font-family:var(--font-head);
-  font-size:18px;font-weight:700;
-  margin-bottom:16px;
-  display:flex;align-items:center;gap:8px;
-}
-.page-title span{color:var(--accent);}
-
-/* ═══════════════════════════════════════════════
-   VIDEO GRID — 1 col mobile / 2 col desktop
-═══════════════════════════════════════════════ */
-#video-grid {
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:16px;
-}
-@media(max-width:640px){
-  #video-grid{grid-template-columns:1fr;}
-}
-
-/* ═══════════════════════════════════════════════
+/* ════════════════════════════════════════
    VIDEO CARD
-═══════════════════════════════════════════════ */
-.video-card {
-  background:var(--card-bg);
-  border-radius:var(--radius);
+════════════════════════════════════════ */
+.video-card{
+  background:var(--bg2);
+  border-radius:var(--rr);
   overflow:hidden;
   border:1px solid var(--border);
+  margin-bottom:14px;
   cursor:pointer;
-  transition:transform .2s,border-color .2s,box-shadow .2s;
+  transition:transform .2s,box-shadow .2s,border-color .2s;
+  position:relative;
 }
 .video-card:hover{
-  transform:translateY(-3px);
-  border-color:var(--accent);
-  box-shadow:0 8px 30px rgba(255,60,60,.12);
+  transform:translateY(-2px);
+  box-shadow:0 12px 40px rgba(0,0,0,.5);
+  border-color:rgba(255,69,0,.3);
 }
-.thumb-wrap {
-  position:relative;
-  aspect-ratio:16/9;
-  background:#1a1a1a;
+.video-card:active{transform:scale(.98);}
+
+/* 3-scene thumbnail grid */
+.thumb-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:2px;
+  aspect-ratio:16/5;
+  background:var(--bg3);
   overflow:hidden;
 }
-.thumb-wrap img {
+.thumb-scene{
+  overflow:hidden;position:relative;
+}
+.thumb-scene img{
   width:100%;height:100%;
   object-fit:cover;
+  object-position:center;
   transition:transform .3s;
 }
-.video-card:hover .thumb-wrap img{transform:scale(1.04);}
-.thumb-duration {
-  position:absolute;bottom:8px;right:8px;
-  background:rgba(0,0,0,.82);
-  color:#fff;
-  font-size:12px;font-weight:600;
-  padding:2px 7px;
-  border-radius:5px;
-  font-family:var(--font-head);
-}
-.thumb-play {
+/* crop positions for 3 scenes */
+.thumb-scene:nth-child(1) img{object-position:15% center;}
+.thumb-scene:nth-child(2) img{object-position:50% center;}
+.thumb-scene:nth-child(3) img{object-position:85% center;}
+.video-card:hover .thumb-scene img{transform:scale(1.06);}
+
+/* scene dividers */
+.thumb-scene::after{
+  content:'';
   position:absolute;inset:0;
-  display:flex;align-items:center;justify-content:center;
-  background:rgba(0,0,0,0);
-  transition:background .2s;
+  background:linear-gradient(to bottom,transparent 50%,rgba(0,0,0,.4));
 }
-.video-card:hover .thumb-play{background:rgba(0,0,0,.3);}
-.thumb-play svg{
-  opacity:0;transform:scale(.8);
-  transition:all .2s;
+
+/* badge overlay */
+.card-badge{
+  position:absolute;top:10px;left:10px;
+  padding:3px 9px;border-radius:20px;
+  font-size:11px;font-weight:700;
+  letter-spacing:.4px;
+  z-index:2;
+  backdrop-filter:blur(8px);
 }
-.video-card:hover .thumb-play svg{opacity:1;transform:scale(1);}
-.card-info {
-  padding:12px 13px 14px;
-}
-.card-title {
-  font-family:var(--font-head);
-  font-size:14px;font-weight:600;
-  line-height:1.4;
-  margin-bottom:7px;
+.badge-hot{background:rgba(255,69,0,.85);color:#fff;}
+.badge-new{background:rgba(34,197,94,.85);color:#fff;}
+.badge-top{background:rgba(234,179,8,.85);color:#000;}
+
+/* card info */
+.card-info{padding:13px 15px 15px;}
+.card-title{
+  font-size:14px;font-weight:700;
+  line-height:1.4;margin-bottom:8px;
   display:-webkit-box;
   -webkit-line-clamp:2;
   -webkit-box-orient:vertical;
   overflow:hidden;
 }
-.card-meta {
-  display:flex;align-items:center;gap:12px;
-  font-size:12px;color:var(--text2);
+.card-meta{
+  display:flex;align-items:center;gap:14px;
+  font-size:12px;color:var(--text2);flex-wrap:wrap;
 }
-.card-meta svg{flex-shrink:0;}
-.badge-hot {
-  display:inline-flex;align-items:center;gap:4px;
-  background:rgba(255,60,60,.15);
-  color:var(--accent);
-  font-size:11px;font-weight:600;
-  padding:2px 8px;border-radius:20px;
+.card-meta-item{display:flex;align-items:center;gap:4px;}
+.card-meta-item svg{flex-shrink:0;opacity:.7;}
+
+/* play overlay */
+.play-overlay{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,0);
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s;
+  pointer-events:none;
+}
+.video-card:hover .play-overlay{background:rgba(0,0,0,.25);}
+.play-circle{
+  width:52px;height:52px;
+  background:rgba(255,69,0,.9);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transform:scale(.7);
+  transition:all .2s;
+  box-shadow:0 4px 20px rgba(255,69,0,.5);
+}
+.video-card:hover .play-circle{opacity:1;transform:scale(1);}
+.play-circle svg{margin-left:3px;}
+
+/* ════════════════════════════════════════
+   SECTION HEADER
+════════════════════════════════════════ */
+.section-hdr{
+  display:flex;align-items:center;gap:8px;
+  margin:20px 0 14px;
+}
+.section-hdr-bar{
+  width:3px;height:20px;
+  background:linear-gradient(var(--accent),var(--accent2));
+  border-radius:2px;flex-shrink:0;
+}
+.section-hdr-title{
+  font-family:var(--font-d);
+  font-size:20px;letter-spacing:.5px;
+}
+.section-hdr-count{
   margin-left:auto;
+  font-size:12px;color:var(--text3);
 }
 
-/* ═══════════════════════════════════════════════
-   PAGINATION
-═══════════════════════════════════════════════ */
-#pagination {
-  display:flex;justify-content:center;align-items:center;
-  gap:6px;margin-top:28px;flex-wrap:wrap;
-}
-.page-btn {
-  width:36px;height:36px;
-  border-radius:8px;
-  background:var(--bg2);
-  border:1px solid var(--border);
-  color:var(--text2);
-  font-size:13px;font-weight:600;
-  transition:all .15s;
-}
-.page-btn:hover{background:var(--bg3);color:var(--text);}
-.page-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
-.page-btn:disabled{opacity:.3;cursor:default;}
-
-/* ═══════════════════════════════════════════════
-   PLAYER PAGE
-═══════════════════════════════════════════════ */
-#player-page{display:none;}
-#player-page.active{display:block;}
-#home-page.hidden{display:none;}
-
-.player-wrap {
-  aspect-ratio:16/9;
-  background:#000;
-  border-radius:var(--radius);
-  overflow:hidden;
-  margin-bottom:16px;
-  border:1px solid var(--border);
-}
-.player-wrap iframe{
-  width:100%;height:100%;border:none;
-}
-.player-title {
-  font-family:var(--font-head);
-  font-size:20px;font-weight:700;
-  line-height:1.35;
-  margin-bottom:12px;
-}
-.player-meta {
-  display:flex;align-items:center;gap:16px;
-  font-size:13px;color:var(--text2);
-  padding-bottom:14px;
-  border-bottom:1px solid var(--border);
-  margin-bottom:14px;
-  flex-wrap:wrap;
-}
-.player-meta-item{display:flex;align-items:center;gap:5px;}
-.player-actions {
-  display:flex;align-items:center;gap:8px;
-  margin-bottom:16px;flex-wrap:wrap;
-}
-.action-btn {
-  display:flex;align-items:center;gap:6px;
-  padding:7px 16px;
-  border-radius:50px;
-  background:var(--bg3);
-  border:1px solid var(--border);
-  color:var(--text2);
-  font-size:13px;font-weight:500;
-  transition:all .15s;
-}
-.action-btn:hover{background:var(--hover);color:var(--text);}
-.action-btn.like:hover{border-color:var(--accent);color:var(--accent);}
-.tags-wrap{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px;}
-.tag {
-  padding:4px 12px;
-  border-radius:50px;
-  background:var(--bg3);
-  border:1px solid var(--border);
-  font-size:12px;color:var(--text2);
-  cursor:pointer;
-  transition:all .15s;
-}
-.tag:hover{border-color:var(--accent);color:var(--accent);}
-
-/* Player sections */
-.section-title {
-  font-family:var(--font-head);
-  font-size:15px;font-weight:700;
-  margin-bottom:14px;
-  display:flex;align-items:center;gap:8px;
-}
-.section-title::before{
-  content:'';display:block;
-  width:3px;height:18px;
-  background:var(--accent);
-  border-radius:2px;
-}
-
-/* ═══════════════════════════════════════════════
-   SKELETON LOADER
-═══════════════════════════════════════════════ */
-@keyframes shimmer {
+/* ════════════════════════════════════════
+   SKELETON
+════════════════════════════════════════ */
+@keyframes shimmer{
   0%{background-position:-600px 0}
   100%{background-position:600px 0}
 }
-.skeleton {
-  background:linear-gradient(90deg,var(--bg3) 25%,var(--hover) 50%,var(--bg3) 75%);
-  background-size:1200px 100%;
-  animation:shimmer 1.4s infinite;
-  border-radius:6px;
+.skel{
+  background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);
+  background-size:1200px;
+  animation:shimmer 1.5s infinite;
+  border-radius:8px;
 }
-.skel-card{background:var(--card-bg);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;}
-.skel-thumb{aspect-ratio:16/9;}
-.skel-line{height:14px;margin:12px 13px 6px;}
-.skel-line.short{width:60%;height:11px;margin-top:0;}
+.skel-card{
+  background:var(--bg2);
+  border-radius:var(--rr);
+  overflow:hidden;
+  margin-bottom:14px;
+  border:1px solid var(--border);
+}
+.skel-thumb{
+  aspect-ratio:16/5;
+}
+.skel-line{height:14px;margin:14px 15px 6px;}
+.skel-line.s{width:55%;height:11px;margin-top:4px;}
+.skel-line.xs{width:35%;height:11px;margin-top:4px;margin-bottom:14px;}
 
-/* ═══════════════════════════════════════════════
-   MOBILE SIDEBAR OVERLAY
-═══════════════════════════════════════════════ */
-#sidebar-overlay {
-  display:none;
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.6);
-  z-index:200;
+/* ════════════════════════════════════════
+   PLAYER PAGE
+════════════════════════════════════════ */
+#player-page{padding-bottom:80px;}
+.player-back{
+  display:flex;align-items:center;gap:8px;
+  padding:12px 12px 8px;
+  color:var(--text2);font-size:13px;font-weight:600;
+  cursor:pointer;max-width:700px;margin:0 auto;
 }
-#sidebar-overlay.open{display:block;}
-#sidebar.mobile-open{
-  position:fixed;left:0;top:0;bottom:0;
-  z-index:201;width:220px;
-  background:var(--bg);
-  border-right:1px solid var(--border);
-  padding:20px 16px;
-  overflow-y:auto;
+.player-back:hover{color:var(--text);}
+.player-back img{width:16px;height:16px;opacity:.6;}
+[data-theme="light"] .player-back img{filter:invert(1);}
+
+.player-embed-wrap{
+  max-width:700px;margin:0 auto;
+  background:#000;
+  aspect-ratio:16/9;
+  overflow:hidden;
+}
+.player-embed-wrap iframe{width:100%;height:100%;border:none;}
+
+/* player thumb 3-scene (before play) */
+.player-thumb-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:3px;
+  aspect-ratio:16/9;
+  background:#000;
+  cursor:pointer;
+  position:relative;
+}
+.player-thumb-scene{overflow:hidden;}
+.player-thumb-scene img{
+  width:100%;height:100%;
+  object-fit:cover;
+}
+.player-thumb-scene:nth-child(1) img{object-position:15% center;}
+.player-thumb-scene:nth-child(2) img{object-position:50% center;}
+.player-thumb-scene:nth-child(3) img{object-position:85% center;}
+.player-thumb-playbtn{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.35);
+}
+.player-thumb-playbtn div{
+  width:68px;height:68px;
+  background:rgba(255,69,0,.92);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 40px rgba(255,69,0,.5);
 }
 
-/* ═══════════════════════════════════════════════
-   EMPTY & ERROR STATES
-═══════════════════════════════════════════════ */
-.empty-state {
+.player-info-wrap{
+  max-width:700px;margin:0 auto;
+  padding:14px 12px 0;
+}
+.player-title{
+  font-size:17px;font-weight:800;
+  line-height:1.35;margin-bottom:10px;
+}
+.player-meta{
+  display:flex;align-items:center;gap:14px;
+  font-size:12px;color:var(--text2);
+  margin-bottom:14px;flex-wrap:wrap;
+}
+.player-actions{
+  display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;
+}
+.act-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:9px 16px;
+  border-radius:50px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  font-size:13px;font-weight:600;
+  transition:all .15s;
+}
+.act-btn:hover{background:var(--bg4);}
+.act-btn.accent{background:var(--accent);color:#fff;border-color:var(--accent);}
+.act-btn img{width:15px;height:15px;opacity:.8;}
+[data-theme="light"] .act-btn img{filter:invert(1);}
+.act-btn.accent img{opacity:1;filter:none;}
+
+.tags-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px;}
+.vtag{
+  padding:5px 12px;border-radius:50px;
+  background:var(--bg3);border:1px solid var(--border);
+  font-size:12px;color:var(--text2);cursor:pointer;
+  transition:all .15s;
+}
+.vtag:hover{border-color:var(--accent);color:var(--accent);}
+
+.player-divider{
+  height:1px;background:var(--border);
+  margin:4px 12px 0;max-width:676px;margin-left:auto;margin-right:auto;
+}
+
+/* ════════════════════════════════════════
+   GENRE PAGE
+════════════════════════════════════════ */
+.genre-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.genre-card{
+  border-radius:var(--r);
+  overflow:hidden;
+  cursor:pointer;
+  position:relative;
+  aspect-ratio:16/9;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  transition:transform .2s,box-shadow .2s;
+}
+.genre-card:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.4);}
+.genre-card img{
+  width:100%;height:100%;
+  object-fit:cover;
+  transition:transform .3s;
+}
+.genre-card:hover img{transform:scale(1.06);}
+.genre-card-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(0,0,0,.85) 0%,rgba(0,0,0,.1) 60%);
+  display:flex;flex-direction:column;
+  justify-content:flex-end;
+  padding:12px;
+}
+.genre-card-name{
+  font-family:var(--font-d);
+  font-size:18px;letter-spacing:.5px;
+  color:#fff;
+}
+.genre-card-count{
+  font-size:11px;color:rgba(255,255,255,.6);margin-top:2px;
+}
+
+/* ════════════════════════════════════════
+   SAVE PAGE
+════════════════════════════════════════ */
+.save-empty{
   text-align:center;padding:60px 20px;
   color:var(--text2);
 }
-.empty-state .icon{font-size:48px;margin-bottom:12px;}
-.empty-state p{font-size:14px;}
+.save-empty .icon{font-size:52px;margin-bottom:12px;}
 
-/* ═══════════════════════════════════════════════
-   TOAST
-═══════════════════════════════════════════════ */
-#toast {
-  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+/* ════════════════════════════════════════
+   UPLOAD PAGE
+════════════════════════════════════════ */
+.upload-wrap{
+  max-width:600px;margin:0 auto;
+  padding:20px 12px;
+}
+.upload-title{
+  font-family:var(--font-d);
+  font-size:28px;letter-spacing:.5px;
+  margin-bottom:6px;
+}
+.upload-sub{font-size:13px;color:var(--text2);margin-bottom:24px;}
+
+.upload-method-tabs{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:8px;margin-bottom:24px;
+}
+.method-tab{
+  padding:14px;
+  border-radius:var(--r);
+  background:var(--bg2);
+  border:2px solid var(--border);
+  text-align:center;
+  cursor:pointer;
+  transition:all .15s;
+}
+.method-tab.active{border-color:var(--accent);background:rgba(255,69,0,.08);}
+.method-tab .mt-icon{font-size:28px;margin-bottom:6px;}
+.method-tab .mt-label{font-size:13px;font-weight:700;}
+.method-tab .mt-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+
+/* file drop zone */
+#file-drop-zone{
+  border:2px dashed var(--border);
+  border-radius:var(--r);
+  padding:40px 20px;
+  text-align:center;
+  cursor:pointer;
+  transition:all .2s;
+  margin-bottom:20px;
+  background:var(--bg2);
+}
+#file-drop-zone.dragover{border-color:var(--accent);background:rgba(255,69,0,.05);}
+#file-drop-zone .dz-icon{font-size:40px;margin-bottom:10px;}
+#file-drop-zone .dz-text{font-size:14px;font-weight:600;margin-bottom:4px;}
+#file-drop-zone .dz-sub{font-size:12px;color:var(--text2);}
+#file-input{display:none;}
+
+/* upload progress */
+#upload-progress-wrap{
+  display:none;
+  background:var(--bg2);
+  border-radius:var(--r);
+  padding:16px;
+  margin-bottom:20px;
+  border:1px solid var(--border);
+}
+#upload-progress-wrap.show{display:block;}
+.progress-bar-bg{
+  height:6px;background:var(--bg3);
+  border-radius:3px;overflow:hidden;
+  margin-top:10px;
+}
+.progress-bar-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  border-radius:3px;width:0%;
+  transition:width .3s;
+}
+.progress-label{font-size:12px;color:var(--text2);}
+
+/* form fields */
+.form-group{margin-bottom:16px;}
+.form-label{
+  display:block;font-size:12px;font-weight:700;
+  letter-spacing:.8px;text-transform:uppercase;
+  color:var(--text2);margin-bottom:8px;
+}
+.form-input{
+  width:100%;
+  padding:12px 16px;
   background:var(--bg2);
   border:1px solid var(--border);
+  border-radius:var(--r);
   color:var(--text);
-  padding:10px 20px;border-radius:50px;
-  font-size:13px;font-weight:500;
-  opacity:0;transition:all .3s;
-  pointer-events:none;z-index:999;
-  white-space:nowrap;
+  font-size:14px;
+  outline:none;
+  transition:border-color .2s;
+}
+.form-input:focus{border-color:var(--accent);}
+select.form-input{cursor:pointer;}
+.form-hint{font-size:11px;color:var(--text3);margin-top:5px;}
+
+.submit-btn{
+  width:100%;padding:15px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;
+  border-radius:50px;
+  font-size:15px;font-weight:800;
+  letter-spacing:.5px;
+  transition:opacity .2s,transform .1s;
+  margin-top:8px;
+}
+.submit-btn:hover{opacity:.9;}
+.submit-btn:active{transform:scale(.98);}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed;}
+
+/* url method */
+#url-input-wrap{display:none;margin-bottom:20px;}
+#url-input-wrap.show{display:block;}
+.url-formats{
+  display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;
+}
+.url-format-tag{
+  padding:3px 10px;border-radius:20px;
+  background:var(--bg3);font-size:11px;color:var(--text2);
+}
+
+/* ════════════════════════════════════════
+   BOTTOM NAV
+════════════════════════════════════════ */
+#bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;
+  height:var(--nav-h);
+  display:flex;align-items:center;
+  background:rgba(12,12,12,.82);
+  backdrop-filter:var(--blur);
+  -webkit-backdrop-filter:var(--blur);
+  border-top:1px solid var(--border);
+  z-index:90;
+  transition:transform .3s ease;
+}
+[data-theme="light"] #bottom-nav{background:rgba(240,240,240,.85);}
+#bottom-nav.hide{transform:translateY(100%);}
+
+.nav-item{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:4px;cursor:pointer;
+  padding:8px 0;
+  transition:opacity .15s;
+}
+.nav-item:active{opacity:.6;}
+.nav-icon{
+  width:22px;height:22px;
+  position:relative;
+}
+.nav-icon img{
+  width:100%;height:100%;
+  opacity:.45;
+  transition:opacity .15s;
+  filter:var(--nav-icon-filter,none);
+}
+[data-theme="light"] .nav-icon img{filter:invert(1);}
+.nav-item.active .nav-icon img{opacity:1;}
+.nav-item.active .nav-icon img.accent-icon{
+  filter:none;
+  /* tint accent via drop-shadow trick */
+}
+.nav-label{
+  font-size:10px;font-weight:600;
+  color:var(--text3);
+  transition:color .15s;
+}
+.nav-item.active .nav-label{color:var(--accent);}
+
+/* Upload center button special style */
+.nav-item.upload-btn .nav-icon{
+  width:46px;height:46px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 18px rgba(255,69,0,.45);
+  margin-top:-10px;
+}
+.nav-item.upload-btn .nav-icon img{
+  width:22px;height:22px;
+  opacity:1;filter:brightness(10);
+}
+.nav-item.upload-btn .nav-label{color:var(--text2);}
+
+/* ════════════════════════════════════════
+   TOAST
+════════════════════════════════════════ */
+#toast{
+  position:fixed;bottom:80px;left:50%;
+  transform:translateX(-50%) translateY(10px);
+  background:var(--bg2);border:1px solid var(--border);
+  color:var(--text);padding:10px 20px;
+  border-radius:50px;font-size:13px;font-weight:600;
+  opacity:0;transition:all .3s;pointer-events:none;
+  z-index:999;white-space:nowrap;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* ═══════════════════════════════════════════════
-   FOOTER
-═══════════════════════════════════════════════ */
-#footer {
-  background:var(--bg2);
-  border-top:1px solid var(--border);
-  padding:20px;
-  text-align:center;
-  color:var(--text3);
-  font-size:12px;
-  margin-top:40px;
+/* ════════════════════════════════════════
+   PAGINATION
+════════════════════════════════════════ */
+#pagination{
+  display:flex;justify-content:center;
+  gap:6px;margin-top:20px;flex-wrap:wrap;
 }
-#footer strong{color:var(--accent);font-family:var(--font-head);}
+.pag-btn{
+  width:36px;height:36px;
+  border-radius:10px;
+  background:var(--bg2);border:1px solid var(--border);
+  color:var(--text2);font-size:13px;font-weight:700;
+  transition:all .15s;
+}
+.pag-btn:hover{background:var(--bg3);color:var(--text);}
+.pag-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.pag-btn:disabled{opacity:.3;cursor:default;}
 
-/* ═══════════════════════════════════════════════
+/* ════════════════════════════════════════
+   EMPTY STATE
+════════════════════════════════════════ */
+.empty{text-align:center;padding:50px 20px;color:var(--text2);}
+.empty .e-icon{font-size:48px;margin-bottom:12px;}
+.empty p{font-size:14px;line-height:1.6;}
+
+/* ════════════════════════════════════════
    RESPONSIVE
-═══════════════════════════════════════════════ */
-@media(max-width:900px){
-  #sidebar{display:none;}
-  #menu-btn{display:flex;}
+════════════════════════════════════════ */
+@media(min-width:600px){
+  #content{padding:20px 16px;}
+  .card-title{font-size:15px;}
 }
-@media(max-width:600px){
-  #header{padding:0 12px;gap:10px;}
-  #logo{font-size:19px;}
-  #layout{padding:14px 10px;}
-  .player-title{font-size:16px;}
+@media(max-width:380px){
+  #logo{font-size:22px;}
+  .card-title{font-size:13px;}
 }
 </style>
 </head>
 <body>
 
-<!-- ═══════════════ HEADER ═══════════════ -->
+<!-- ══════════ HEADER ══════════ -->
 <header id="header">
-  <div id="logo" onclick="goHome()" style="cursor:pointer">CLAPSLAP</div>
-
-  <div id="search-wrap">
-    <svg id="search-icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-    </svg>
-    <input id="search-input" type="text" placeholder="Cari video..." 
-           onkeydown="if(event.key==='Enter')doSearch()"/>
-    <button id="search-btn" onclick="doSearch()">Cari</button>
-  </div>
-
-  <div class="header-right">
-    <button id="theme-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
-    <button id="menu-btn" onclick="openSidebar()">☰</button>
+  <div class="hdr-row">
+    <div id="logo" onclick="navTo('home')">CLAPSLAP</div>
+    <div class="hdr-spacer"></div>
+    <button class="hdr-icon-btn" onclick="openSearch()" title="Cari">
+      <!-- Search icon SVG inline -->
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" style="opacity:.75">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+    </button>
+    <button class="hdr-icon-btn" onclick="toast('Notifikasi segera hadir!')" title="Notifikasi">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" style="opacity:.75">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <span class="notif-dot"></span>
+    </button>
+    <button class="hdr-icon-btn" onclick="toggleTheme()" title="Tema">
+      <span id="theme-icon" style="font-size:15px">☀️</span>
+    </button>
   </div>
 </header>
 
-<!-- ═══════════════ FILTER BAR ═══════════════ -->
-<div id="filter-bar">
-  <button class="filter-btn active" onclick="setFilter('terbaru',this)">🕐 Terbaru</button>
-  <button class="filter-btn" onclick="setFilter('trending',this)">🔥 Trending</button>
-  <button class="filter-btn" onclick="setFilter('terpopuler',this)">👁 Terpopuler</button>
-  <button class="filter-btn" onclick="setFilter('durasi',this)">⏱ Durasi Panjang</button>
-  <button class="filter-btn" onclick="setFilter('random',this)">🎲 Random</button>
+<!-- ══════════ CHIP BAR ══════════ -->
+<div id="chip-bar">
+  <button class="chip active" onclick="setChip('semua',this)">Semua</button>
+  <!-- Genre chips dari Lulustream -->
 </div>
 
-<!-- ═══════════════ MOBILE SIDEBAR OVERLAY ═══════════════ -->
-<div id="sidebar-overlay" onclick="closeSidebar()"></div>
-
-<!-- ═══════════════ LAYOUT ═══════════════ -->
-<div id="layout">
-
-  <!-- SIDEBAR -->
-  <aside id="sidebar">
-    <div class="sidebar-section">
-      <div class="sidebar-title">Menu</div>
-      <a class="sidebar-link active" onclick="goHome()">
-        <span class="sidebar-dot"></span>Beranda
-      </a>
-      <a class="sidebar-link" onclick="setFilter('trending',null)">
-        🔥 Trending
-      </a>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-title">Kategori</div>
-      <div id="sidebar-categories">
-        <div class="skeleton" style="height:13px;margin-bottom:8px;border-radius:4px;"></div>
-        <div class="skeleton" style="height:13px;margin-bottom:8px;width:70%;border-radius:4px;"></div>
-        <div class="skeleton" style="height:13px;margin-bottom:8px;width:85%;border-radius:4px;"></div>
-      </div>
-    </div>
-  </aside>
-
-  <!-- MAIN -->
-  <main id="main">
-
-    <!-- HOME PAGE -->
-    <div id="home-page">
-      <div id="page-heading" class="page-title">
-        Video <span>Terbaru</span>
-      </div>
-      <div id="video-grid">
-        <!-- Skeleton loaders -->
-        <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-line skeleton"></div><div class="skel-line short skeleton"></div></div>
-        <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-line skeleton"></div><div class="skel-line short skeleton"></div></div>
-        <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-line skeleton"></div><div class="skel-line short skeleton"></div></div>
-        <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-line skeleton"></div><div class="skel-line short skeleton"></div></div>
-      </div>
-      <div id="pagination"></div>
-    </div>
-
-    <!-- PLAYER PAGE -->
-    <div id="player-page">
-      <!-- Back button -->
-      <button onclick="goHome()" style="display:flex;align-items:center;gap:6px;color:var(--text2);font-size:13px;margin-bottom:14px;padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:50px;">
-        ← Kembali
-      </button>
-
-      <!-- Player -->
-      <div class="player-wrap" id="player-wrap"></div>
-
-      <!-- Info -->
-      <h1 class="player-title" id="player-title">Memuat...</h1>
-      <div class="player-meta" id="player-meta"></div>
-      <div class="player-actions" id="player-actions"></div>
-      <div class="tags-wrap" id="player-tags"></div>
-
-      <!-- Related -->
-      <div class="section-title">Video Terkait</div>
-      <div id="related-grid" class="video-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:28px;">
-        <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-line skeleton"></div></div>
-        <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-line skeleton"></div></div>
-      </div>
-
-      <!-- Trending -->
-      <div class="section-title">🔥 Trending</div>
-      <div id="trending-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;">
-        <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-line skeleton"></div></div>
-        <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-line skeleton"></div></div>
-      </div>
-    </div>
-
-  </main>
+<!-- ══════════ SEARCH OVERLAY ══════════ -->
+<div id="search-overlay">
+  <button class="close-search" onclick="closeSearch()">✕</button>
+  <input id="search-input-main" type="text" placeholder="Cari video..."
+         oninput="onSearchType(this.value)"
+         onkeydown="if(event.key==='Enter')doSearch(this.value)"/>
+  <div id="search-history">
+    <div class="sh-title">Pencarian Terakhir</div>
+    <div id="sh-list"></div>
+  </div>
 </div>
 
-<!-- FOOTER -->
-<footer id="footer">
-  © 2026 <strong>CLAPSLAP</strong> — All rights reserved.
-</footer>
+<!-- ══════════ PAGES ══════════ -->
 
-<!-- TOAST -->
+<!-- HOME PAGE -->
+<div id="home-page" class="page active">
+  <div id="content">
+    <div id="video-list"></div>
+    <div id="pagination"></div>
+  </div>
+</div>
+
+<!-- TRENDING PAGE -->
+<div id="trending-page" class="page">
+  <div id="content">
+    <div class="section-hdr" style="padding:0 0 4px">
+      <div class="section-hdr-bar"></div>
+      <div class="section-hdr-title">🔥 TRENDING</div>
+    </div>
+    <div id="trending-list"></div>
+  </div>
+</div>
+
+<!-- GENRE PAGE -->
+<div id="genre-page" class="page">
+  <div id="content">
+    <div class="section-hdr" style="padding:0 0 4px">
+      <div class="section-hdr-bar"></div>
+      <div class="section-hdr-title">GENRE</div>
+    </div>
+    <div id="genre-grid" class="genre-grid"></div>
+  </div>
+</div>
+
+<!-- GENRE DETAIL PAGE -->
+<div id="genre-detail-page" class="page">
+  <div id="content">
+    <button class="player-back" onclick="navTo('genre')" style="padding:0 0 14px">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5m7-7-7 7 7 7"/></svg>
+      Kembali ke Genre
+    </button>
+    <div id="genre-detail-title" class="section-hdr" style="padding:0 0 4px">
+      <div class="section-hdr-bar"></div>
+      <div class="section-hdr-title"></div>
+    </div>
+    <div id="genre-detail-list"></div>
+  </div>
+</div>
+
+<!-- SAVE PAGE -->
+<div id="save-page" class="page">
+  <div id="content">
+    <div class="section-hdr" style="padding:0 0 4px">
+      <div class="section-hdr-bar"></div>
+      <div class="section-hdr-title">TERSIMPAN</div>
+    </div>
+    <div id="save-list"></div>
+  </div>
+</div>
+
+<!-- UPLOAD PAGE -->
+<div id="upload-page" class="page">
+  <div class="upload-wrap">
+    <div class="upload-title">UPLOAD VIDEO</div>
+    <div class="upload-sub">Upload video ke CLAPSLAP via file atau URL</div>
+
+    <!-- Method tabs -->
+    <div class="upload-method-tabs">
+      <div class="method-tab active" id="tab-file" onclick="setUploadMethod('file')">
+        <div class="mt-icon">📁</div>
+        <div class="mt-label">Upload File</div>
+        <div class="mt-sub">MP4, MKV, AVI</div>
+      </div>
+      <div class="method-tab" id="tab-url" onclick="setUploadMethod('url')">
+        <div class="mt-icon">🔗</div>
+        <div class="mt-label">Dari URL</div>
+        <div class="mt-sub">MP4 URL / Hosting</div>
+      </div>
+    </div>
+
+    <!-- File drop zone -->
+    <div id="file-drop-zone" onclick="document.getElementById('file-input').click()"
+         ondragover="event.preventDefault();this.classList.add('dragover')"
+         ondragleave="this.classList.remove('dragover')"
+         ondrop="handleFileDrop(event)">
+      <div class="dz-icon">🎬</div>
+      <div class="dz-text">Drag & drop video di sini</div>
+      <div class="dz-sub">atau klik untuk pilih file — MP4, MKV, AVI (max 4GB)</div>
+    </div>
+    <input type="file" id="file-input" accept="video/*" onchange="handleFileSelect(this)"/>
+
+    <!-- URL input -->
+    <div id="url-input-wrap">
+      <div class="form-group">
+        <label class="form-label">URL Video</label>
+        <input class="form-input" id="video-url-input" type="url"
+               placeholder="https://example.com/video.mp4"/>
+        <div class="form-hint">Supported: Direct .mp4 URL dan beberapa video hosting</div>
+      </div>
+      <div class="url-formats">
+        <span class="url-format-tag">.mp4</span>
+        <span class="url-format-tag">.mkv</span>
+        <span class="url-format-tag">.avi</span>
+        <span class="url-format-tag">direct link</span>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div id="upload-progress-wrap">
+      <div class="progress-label" id="progress-label">Mengupload...</div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-bar"></div>
+      </div>
+    </div>
+
+    <!-- Form fields -->
+    <div class="form-group">
+      <label class="form-label">Judul Video *</label>
+      <input class="form-input" id="upload-title" type="text" placeholder="Masukkan judul video..."/>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Tags</label>
+      <input class="form-input" id="upload-tags" type="text"
+             placeholder="tutorial, tips, gaming (pisah dengan koma)"/>
+      <div class="form-hint">Bantu penonton menemukan video kamu</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Genre / Kategori</label>
+      <select class="form-input" id="upload-genre">
+        <option value="">Pilih genre...</option>
+      </select>
+    </div>
+
+    <button class="submit-btn" id="upload-submit-btn" onclick="doUpload()">
+      ⬆️ UPLOAD SEKARANG
+    </button>
+  </div>
+</div>
+
+<!-- PLAYER PAGE -->
+<div id="player-page" class="page">
+  <button class="player-back" onclick="goBackFromPlayer()">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5m7-7-7 7 7 7"/></svg>
+    Kembali
+  </button>
+
+  <!-- Thumbnail 3 scene (before play) -->
+  <div class="player-embed-wrap" id="player-embed-wrap">
+    <div class="player-thumb-grid" id="player-thumb" onclick="playVideo()">
+      <div class="player-thumb-scene"><img id="pthumb1" src="" alt=""/></div>
+      <div class="player-thumb-scene"><img id="pthumb2" src="" alt=""/></div>
+      <div class="player-thumb-scene"><img id="pthumb3" src="" alt=""/></div>
+      <div class="player-thumb-playbtn">
+        <div>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="player-info-wrap">
+    <h1 class="player-title" id="player-title">Memuat...</h1>
+    <div class="player-meta" id="player-meta"></div>
+    <div class="player-actions" id="player-actions"></div>
+    <div class="tags-row" id="player-tags"></div>
+  </div>
+
+  <div class="player-divider"></div>
+
+  <!-- Related -->
+  <div id="content" style="padding-top:0">
+    <div class="section-hdr">
+      <div class="section-hdr-bar"></div>
+      <div class="section-hdr-title">VIDEO TERKAIT</div>
+    </div>
+    <div id="related-list"></div>
+
+    <div class="section-hdr">
+      <div class="section-hdr-bar"></div>
+      <div class="section-hdr-title">🔥 TRENDING</div>
+    </div>
+    <div id="player-trending-list"></div>
+  </div>
+</div>
+
+<!-- ══════════ BOTTOM NAV ══════════ -->
+<nav id="bottom-nav">
+  <div class="nav-item active" id="nav-home" onclick="navTo('home')">
+    <div class="nav-icon">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" id="ico-home">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    </div>
+    <span class="nav-label">Home</span>
+  </div>
+
+  <div class="nav-item" id="nav-trending" onclick="navTo('trending')">
+    <div class="nav-icon">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+        <polyline points="17 6 23 6 23 12"/>
+      </svg>
+    </div>
+    <span class="nav-label">Trending</span>
+  </div>
+
+  <div class="nav-item upload-btn" id="nav-upload" onclick="navTo('upload')">
+    <div class="nav-icon">
+      <svg width="22" height="22" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
+        <polyline points="16 16 12 12 8 16"/>
+        <line x1="12" y1="12" x2="12" y2="21"/>
+        <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+      </svg>
+    </div>
+    <span class="nav-label">Upload</span>
+  </div>
+
+  <div class="nav-item" id="nav-genre" onclick="navTo('genre')">
+    <div class="nav-icon">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+      </svg>
+    </div>
+    <span class="nav-label">Genre</span>
+  </div>
+
+  <div class="nav-item" id="nav-save" onclick="navTo('save')">
+    <div class="nav-icon">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+      </svg>
+    </div>
+    <span class="nav-label">Simpan</span>
+  </div>
+</nav>
+
+<!-- ══════════ TOAST ══════════ -->
 <div id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════════════
-// CONFIG
-// ═══════════════════════════════════════════════
-// Ganti URL ini setelah deploy Cloudflare Worker kamu
-const WORKER_URL = 'https://clapslap-api.zalpro.workers.dev';
+// ═══════════════════════════════════════════
+// CONFIG — ganti dengan URL Worker kamu
+// ═══════════════════════════════════════════
+const WORKER = 'https://clapslap-api.YOUR_SUBDOMAIN.workers.dev';
 
-// State
-let state = {
-  page: 1,
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+const S = {
+  page:       1,
   totalPages: 1,
-  filter: 'terbaru',
-  currentFldId: '',
-  allVideos: [],    // cache untuk related/trending
+  filter:     'semua',
+  currentFld: '',
+  fldName:    '',
+  videos:     [],
   categories: [],
+  saved:      JSON.parse(localStorage.getItem('cs_saved')||'[]'),
+  currentNav: 'home',
+  prevNav:    'home',
+  currentCode:'',
+  uploadMethod:'file',
+  uploadFile:  null,
 };
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // INIT
-// ═══════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', () => {
+// ═══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  applyTheme();
+  initScrollHide();
   loadCategories();
   loadVideos();
-  applyTheme();
+  renderSearchHistory();
+  const p = new URLSearchParams(location.search).get('v');
+  if(p) openPlayer(p);
 });
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // THEME
-// ═══════════════════════════════════════════════
-function toggleTheme() {
-  const html = document.documentElement;
-  const isDark = html.getAttribute('data-theme') === 'dark';
-  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
-  document.getElementById('theme-btn').textContent = isDark ? '🌙' : '☀️';
-  localStorage.setItem('theme', isDark ? 'light' : 'dark');
+// ═══════════════════════════════════════════
+function toggleTheme(){
+  const d = document.documentElement;
+  const isD = d.getAttribute('data-theme')==='dark';
+  d.setAttribute('data-theme', isD?'light':'dark');
+  document.getElementById('theme-icon').textContent = isD?'🌙':'☀️';
+  localStorage.setItem('cs_theme', isD?'light':'dark');
 }
-function applyTheme() {
-  const saved = localStorage.getItem('theme') || 'dark';
-  document.documentElement.setAttribute('data-theme', saved);
-  document.getElementById('theme-btn').textContent = saved === 'dark' ? '☀️' : '🌙';
-}
-
-// ═══════════════════════════════════════════════
-// SIDEBAR MOBILE
-// ═══════════════════════════════════════════════
-function openSidebar() {
-  document.getElementById('sidebar').classList.add('mobile-open');
-  document.getElementById('sidebar-overlay').classList.add('open');
-  document.getElementById('sidebar').style.display = 'block';
-}
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('mobile-open');
-  document.getElementById('sidebar-overlay').classList.remove('open');
-  if (window.innerWidth <= 900)
-    document.getElementById('sidebar').style.display = 'none';
+function applyTheme(){
+  const t = localStorage.getItem('cs_theme')||'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  document.getElementById('theme-icon').textContent = t==='dark'?'☀️':'🌙';
 }
 
-// ═══════════════════════════════════════════════
-// FETCH HELPERS
-// ═══════════════════════════════════════════════
-async function apiFetch(endpoint) {
-  const res = await fetch(WORKER_URL + endpoint);
-  if (!res.ok) throw new Error('Network error');
-  return res.json();
+// ═══════════════════════════════════════════
+// SCROLL HIDE HEADER + NAV
+// ═══════════════════════════════════════════
+function initScrollHide(){
+  let lastY=0;
+  window.addEventListener('scroll',()=>{
+    const y = window.scrollY;
+    const down = y > lastY && y > 80;
+    document.getElementById('header').classList.toggle('hide',down);
+    document.getElementById('bottom-nav').classList.toggle('hide',down);
+    lastY = y;
+  },{passive:true});
 }
 
-// ═══════════════════════════════════════════════
-// LOAD CATEGORIES (auto-detect dari Lulustream folder)
-// ═══════════════════════════════════════════════
-async function loadCategories() {
-  try {
-    const data = await apiFetch('/folders');
-    const folders = data?.result?.folders || [];
-    state.categories = folders;
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+function navTo(page){
+  if(page === S.currentNav && page!=='home') return;
+  S.prevNav = S.currentNav;
+  S.currentNav = page;
 
-    const el = document.getElementById('sidebar-categories');
-    if (!folders.length) {
-      el.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:4px">Tidak ada kategori</div>';
-      return;
-    }
+  // hide all pages
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  // hide chip bar on some pages
+  const showChip = ['home','trending','player'].includes(page);
+  document.getElementById('chip-bar').style.display = showChip?'':'none';
 
-    el.innerHTML = `
-      <a class="sidebar-link" onclick="filterByFolder('',this)">
-        <span class="sidebar-dot"></span>Semua
-      </a>
-      ${folders.map(f => `
-        <a class="sidebar-link" onclick="filterByFolder('${f.fld_id}',this)">
-          ${f.name}
-        </a>
-      `).join('')}
-    `;
-  } catch(e) {
-    document.getElementById('sidebar-categories').innerHTML =
-      '<div style="color:var(--text3);font-size:12px;padding:4px">Gagal memuat</div>';
-  }
+  // show target
+  document.getElementById(page+'-page').classList.add('active');
+
+  // update nav active
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const navEl = document.getElementById('nav-'+page);
+  if(navEl) navEl.classList.add('active');
+
+  window.scrollTo(0,0);
+
+  // load data
+  if(page==='home') loadVideos();
+  if(page==='trending') loadTrending();
+  if(page==='genre') loadGenrePage();
+  if(page==='save') renderSavePage();
+  if(page==='upload') initUploadPage();
 }
 
-// ═══════════════════════════════════════════════
-// LOAD VIDEOS
-// ═══════════════════════════════════════════════
-async function loadVideos(page = 1) {
-  state.page = page;
-  showSkeletons();
+// ═══════════════════════════════════════════
+// API FETCH
+// ═══════════════════════════════════════════
+async function api(path){
+  const r = await fetch(WORKER+path);
+  if(!r.ok) throw new Error('API error');
+  return r.json();
+}
 
-  try {
-    let endpoint = '';
+// ═══════════════════════════════════════════
+// LOAD CATEGORIES
+// ═══════════════════════════════════════════
+async function loadCategories(){
+  try{
+    const d = await api('/folders');
+    S.categories = d?.result?.folders || [];
+    renderChips();
+    populateGenreSelect();
+  }catch(e){console.warn('Folder error',e);}
+}
 
-    if (state.filter === 'trending') {
-      endpoint = '/trending';
-    } else if (state.filter === 'terpopuler') {
-      endpoint = `/videos?page=${page}&per_page=20&sort=views`;
-      if (state.currentFldId) endpoint += `&fld_id=${state.currentFldId}`;
-    } else if (state.filter === 'durasi') {
-      endpoint = `/videos?page=${page}&per_page=20`;
-      if (state.currentFldId) endpoint += `&fld_id=${state.currentFldId}`;
-    } else if (state.filter === 'random') {
-      endpoint = `/videos?page=${Math.floor(Math.random()*5)+1}&per_page=20`;
-    } else {
-      // terbaru (default)
-      endpoint = `/videos?page=${page}&per_page=20`;
-      if (state.currentFldId) endpoint += `&fld_id=${state.currentFldId}`;
-    }
+function renderChips(){
+  const bar = document.getElementById('chip-bar');
+  const extra = S.categories.map(f=>
+    `<button class="chip" onclick="setChip('${f.fld_id}',this)">${f.name}</button>`
+  ).join('');
+  bar.innerHTML = `<button class="chip active" onclick="setChip('semua',this)">Semua</button>${extra}`;
+}
 
-    const data = await apiFetch(endpoint);
-    let files = data?.result?.files || data?.result || [];
+function setChip(fldId, el){
+  S.currentFld = fldId==='semua'?'':fldId;
+  S.filter = fldId;
+  S.page = 1;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  if(el) el.classList.add('active');
+  if(S.currentNav==='home') loadVideos();
+  else if(S.currentNav==='trending') loadTrending();
+}
 
-    // Durasi panjang: sort by length
-    if (state.filter === 'durasi') {
-      files = [...files].sort((a,b) => parseInt(b.length||0) - parseInt(a.length||0));
-    }
-
-    state.allVideos = files;
-    state.totalPages = data?.result?.pages || 1;
-
-    renderGrid(files);
+// ═══════════════════════════════════════════
+// LOAD VIDEOS (HOME)
+// ═══════════════════════════════════════════
+async function loadVideos(page=1){
+  S.page = page;
+  showSkeleton('video-list');
+  try{
+    let ep = `/videos?page=${page}&per_page=15`;
+    if(S.currentFld) ep+=`&fld_id=${S.currentFld}`;
+    const d = await api(ep);
+    const files = d?.result?.files||[];
+    S.videos = files;
+    S.totalPages = d?.result?.pages||1;
+    renderVideoList(files,'video-list');
     renderPagination();
-  } catch(e) {
-    document.getElementById('video-grid').innerHTML = `
-      <div class="empty-state" style="grid-column:1/-1">
-        <div class="icon">⚠️</div>
-        <p>Gagal memuat video. Pastikan Worker URL sudah dikonfigurasi.</p>
-        <p style="margin-top:8px;font-size:12px;color:var(--text3)">${e.message}</p>
-      </div>`;
+  }catch(e){
+    document.getElementById('video-list').innerHTML=
+      `<div class="empty"><div class="e-icon">⚠️</div><p>Gagal memuat video.<br>Pastikan WORKER URL sudah dikonfigurasi.</p></div>`;
   }
 }
 
-// ═══════════════════════════════════════════════
-// RENDER GRID
-// ═══════════════════════════════════════════════
-function renderGrid(files, containerId = 'video-grid') {
-  const grid = document.getElementById(containerId);
-  if (!files.length) {
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
-      <div class="icon">🎬</div><p>Tidak ada video ditemukan.</p></div>`;
+// ═══════════════════════════════════════════
+// LOAD TRENDING
+// ═══════════════════════════════════════════
+async function loadTrending(){
+  showSkeleton('trending-list');
+  try{
+    const d = await api('/trending');
+    const files = d?.result?.files||d?.result||[];
+    renderVideoList(files,'trending-list');
+  }catch(e){
+    document.getElementById('trending-list').innerHTML=
+      `<div class="empty"><div class="e-icon">🔥</div><p>Gagal memuat trending.</p></div>`;
+  }
+}
+
+// ═══════════════════════════════════════════
+// LOAD GENRE PAGE
+// ═══════════════════════════════════════════
+async function loadGenrePage(){
+  const grid = document.getElementById('genre-grid');
+  grid.innerHTML = S.categories.map(()=>`
+    <div class="skel-card">
+      <div class="skel-thumb skel" style="aspect-ratio:16/9"></div>
+    </div>`).join('');
+
+  if(!S.categories.length){
+    grid.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="e-icon">📂</div><p>Tidak ada genre ditemukan.</p></div>';
     return;
   }
 
-  grid.innerHTML = files.map(v => videoCard(v)).join('');
+  // Fetch 1 video per folder untuk thumbnail
+  const cards = await Promise.all(S.categories.map(async f=>{
+    try{
+      const d = await api(`/videos?fld_id=${f.fld_id}&per_page=1`);
+      const v = d?.result?.files?.[0];
+      const thumb = v ? `https://img.lulustream.com/${v.file_code}_t.jpg` : '';
+      const count = d?.result?.total_items||'';
+      return {f, thumb, count};
+    }catch{return {f,thumb:'',count:''};}
+  }));
+
+  grid.innerHTML = cards.map(({f,thumb,count})=>`
+    <div class="genre-card" onclick="openGenreDetail('${f.fld_id}','${escH(f.name)}')">
+      ${thumb?`<img src="${thumb}" alt="${escH(f.name)}" onerror="this.style.display='none'"/>`:''}
+      <div class="genre-card-overlay">
+        <div class="genre-card-name">${escH(f.name)}</div>
+        ${count?`<div class="genre-card-count">${count} video</div>`:''}
+      </div>
+    </div>`).join('');
 }
 
-function videoCard(v) {
-  const thumb = v.thumbnail || `https://img.lulustream.com/${v.file_code}_t.jpg`;
-  const dur   = formatDuration(v.length || v.file_length || 0);
-  const views = formatViews(v.views || v.file_views || 0);
-  const title = v.title || v.file_title || 'Untitled';
+function openGenreDetail(fldId, name){
+  S.prevNav = S.currentNav;
+  S.currentNav = 'genre-detail';
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('genre-detail-page').classList.add('active');
+  document.getElementById('chip-bar').style.display='none';
+  document.getElementById('genre-detail-title').querySelector('.section-hdr-title').textContent = name;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('nav-genre').classList.add('active');
+  window.scrollTo(0,0);
+
+  showSkeleton('genre-detail-list');
+  api(`/videos?fld_id=${fldId}&per_page=20`).then(d=>{
+    const files = d?.result?.files||[];
+    renderVideoList(files,'genre-detail-list');
+  }).catch(()=>{
+    document.getElementById('genre-detail-list').innerHTML=
+      '<div class="empty"><p>Gagal memuat video.</p></div>';
+  });
+}
+
+// ═══════════════════════════════════════════
+// RENDER VIDEO LIST
+// ═══════════════════════════════════════════
+function renderVideoList(files, containerId){
+  const el = document.getElementById(containerId);
+  if(!files.length){
+    el.innerHTML='<div class="empty"><div class="e-icon">🎬</div><p>Tidak ada video ditemukan.</p></div>';
+    return;
+  }
+  el.innerHTML = files.map((v,i)=>videoCard(v,i)).join('');
+}
+
+function videoCard(v, idx=0){
   const code  = v.file_code;
-  const isHot = parseInt(v.views||0) > 5000;
+  const thumb = `https://img.lulustream.com/${code}_t.jpg`;
+  const title = v.title||v.file_title||'Untitled';
+  const views = fmtViews(v.views||v.file_views||0);
+  const likes = fmtViews(v.likes||0);
+  const dur   = fmtDur(v.length||v.file_length||0);
+  const isHot = parseInt(v.views||0)>5000;
+  const isNew = idx < 3;
+  const isSaved = S.saved.some(s=>s.file_code===code);
+
+  let badge = '';
+  if(isHot) badge='<span class="card-badge badge-hot">🔥 HOT</span>';
+  else if(isNew) badge='<span class="card-badge badge-new">✨ NEW</span>';
 
   return `
-    <div class="video-card" onclick="openPlayer('${code}')">
-      <div class="thumb-wrap">
-        <img src="${thumb}" alt="${escHtml(title)}" loading="lazy"
-             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22320%22 height=%22180%22><rect fill=%22%231a1a1a%22 width=%22320%22 height=%22180%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23444%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2228%22>🎬</text></svg>'"/>
-        <div class="thumb-play">
-          <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
-            <circle cx="22" cy="22" r="22" fill="rgba(255,60,60,.85)"/>
-            <polygon points="17,13 35,22 17,31" fill="white"/>
-          </svg>
-        </div>
-        ${dur ? `<div class="thumb-duration">${dur}</div>` : ''}
+  <div class="video-card" onclick="openPlayer('${code}')">
+    ${badge}
+    <div class="thumb-grid">
+      <div class="thumb-scene"><img src="${thumb}" alt="${escH(title)}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22320%22 height=%22180%22><rect fill=%22%231c1c1c%22 width=%22320%22 height=%22180%22/></svg>'"/></div>
+      <div class="thumb-scene"><img src="${thumb}" alt="" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22320%22 height=%22180%22><rect fill=%22%231c1c1c%22 width=%22320%22 height=%22180%22/></svg>'"/></div>
+      <div class="thumb-scene"><img src="${thumb}" alt="" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22320%22 height=%22180%22><rect fill=%22%231c1c1c%22 width=%22320%22 height=%22180%22/></svg>'"/></div>
+    </div>
+    <div class="play-overlay">
+      <div class="play-circle">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
       </div>
-      <div class="card-info">
-        <div class="card-title">${escHtml(title)}</div>
-        <div class="card-meta">
-          <span style="display:flex;align-items:center;gap:4px">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            ${views}
-          </span>
-          ${isHot ? '<span class="badge-hot">🔥 Hot</span>' : ''}
-        </div>
+    </div>
+    <div class="card-info">
+      <div class="card-title">${escH(title)}</div>
+      <div class="card-meta">
+        <span class="card-meta-item">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          ${views}
+        </span>
+        <span class="card-meta-item">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          ${likes}
+        </span>
+        ${dur?`<span class="card-meta-item">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ${dur}
+        </span>`:''}
       </div>
-    </div>`;
+    </div>
+  </div>`;
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // OPEN PLAYER
-// ═══════════════════════════════════════════════
-async function openPlayer(fileCode) {
-  // Switch pages
-  document.getElementById('home-page').classList.add('hidden');
-  document.getElementById('player-page').classList.add('active');
-  window.scrollTo(0,0);
-  closeSidebar();
+// ═══════════════════════════════════════════
+async function openPlayer(code){
+  S.currentCode = code;
+  S.prevNav = S.currentNav;
 
-  // Set player embed
-  document.getElementById('player-wrap').innerHTML =
-    `<iframe src="https://lulustream.com/e/${fileCode}" 
-             allowfullscreen scrolling="no" 
-             allow="autoplay;fullscreen"></iframe>`;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('player-page').classList.add('active');
+  document.getElementById('chip-bar').style.display='';
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  window.scrollTo(0,0);
+
+  // Set 3-scene thumbnail before play
+  const thumb = `https://img.lulustream.com/${code}_t.jpg`;
+  ['pthumb1','pthumb2','pthumb3'].forEach(id=>{
+    document.getElementById(id).src = thumb;
+  });
+  document.getElementById('player-thumb').style.display='grid';
 
   // Reset info
-  document.getElementById('player-title').textContent = 'Memuat...';
-  document.getElementById('player-meta').innerHTML = '';
-  document.getElementById('player-actions').innerHTML = '';
-  document.getElementById('player-tags').innerHTML = '';
+  document.getElementById('player-title').textContent='Memuat...';
+  document.getElementById('player-meta').innerHTML='';
+  document.getElementById('player-actions').innerHTML='';
+  document.getElementById('player-tags').innerHTML='';
+  showSkeleton('related-list');
+  showSkeleton('player-trending-list');
 
-  // Skeleton related
-  document.getElementById('related-grid').innerHTML = `
-    <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-line skeleton"></div></div>
-    <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-line skeleton"></div></div>`;
-
-  try {
-    // Fetch video detail
-    const data = await apiFetch(`/video/${fileCode}`);
-    const v    = data?.result?.[0] || {};
-
-    const title   = v.file_title || 'Untitled';
-    const views   = formatViews(v.file_views || 0);
-    const dur     = formatDuration(v.file_length || 0);
-    const date    = v.file_created ? v.file_created.split(' ')[0] : '';
-    const tags    = (v.tags || '').split(',').map(t=>t.trim()).filter(Boolean);
+  try{
+    const d = await api(`/video/${code}`);
+    const v = d?.result?.[0]||{};
+    const title = v.file_title||'Untitled';
+    const views = fmtViews(v.file_views||0);
+    const likes = fmtViews(v.file_likes||0);
+    const dur   = fmtDur(v.file_length||0);
+    const date  = (v.file_created||'').split(' ')[0];
+    const tags  = (v.tags||'').split(',').map(t=>t.trim()).filter(Boolean);
+    const fldId = v.file_fld_id||'';
+    const isSaved = S.saved.some(s=>s.file_code===code);
 
     document.title = `${title} — CLAPSLAP`;
     document.getElementById('player-title').textContent = title;
 
-    document.getElementById('player-meta').innerHTML = `
-      <span class="player-meta-item">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        ${views} views
-      </span>
-      ${dur ? `<span class="player-meta-item">⏱ ${dur}</span>` : ''}
-      ${date ? `<span class="player-meta-item">📅 ${date}</span>` : ''}
+    document.getElementById('player-meta').innerHTML=`
+      ${views?`<span>👁 ${views} views</span>`:''}
+      ${dur?`<span>⏱ ${dur}</span>`:''}
+      ${date?`<span>📅 ${date}</span>`:''}
     `;
 
-    document.getElementById('player-actions').innerHTML = `
-      <button class="action-btn like" onclick="toast('Ditambahkan ke favorit!')">
-        ❤️ Suka
+    document.getElementById('player-actions').innerHTML=`
+      <button class="act-btn ${isSaved?'accent':''}" id="save-btn" onclick="toggleSave('${code}','${escH(title)}','${thumb}','${dur}')">
+        ${isSaved?'🔖 Tersimpan':'🔖 Simpan'}
       </button>
-      <button class="action-btn" onclick="copyLink('${fileCode}')">
-        🔗 Bagikan
+      <button class="act-btn" onclick="shareVideo('${code}','${escH(title)}')">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Share
+      </button>
+      <button class="act-btn" onclick="downloadVideo('${code}')">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download
       </button>
     `;
 
-    if (tags.length) {
-      document.getElementById('player-tags').innerHTML =
-        tags.map(t=>`<span class="tag" onclick="searchTag('${t}')">#${t}</span>`).join('');
+    if(tags.length){
+      document.getElementById('player-tags').innerHTML=
+        tags.map(t=>`<span class="vtag" onclick="searchTag('${t}')">#${t}</span>`).join('');
     }
 
-    // Related: ambil dari cache atau fetch, filter by tag/folder
-    loadRelatedVideos(fileCode, tags, v.file_fld_id);
-    loadTrendingVideos(fileCode);
+    loadRelated(code, fldId);
+    loadPlayerTrending(code);
 
-  } catch(e) {
-    document.getElementById('player-title').textContent = 'Gagal memuat detail video';
+  }catch(e){
+    document.getElementById('player-title').textContent='Gagal memuat info video';
   }
 }
 
-// ═══════════════════════════════════════════════
-// RELATED VIDEOS
-// ═══════════════════════════════════════════════
-async function loadRelatedVideos(currentCode, tags, fldId) {
-  try {
-    let files = [];
-
-    // Coba fetch dari folder yang sama
-    if (fldId && fldId !== '0') {
-      const data = await apiFetch(`/videos?fld_id=${fldId}&per_page=20`);
-      files = data?.result?.files || [];
-    }
-
-    // Fallback: ambil dari cache
-    if (!files.length && state.allVideos.length) {
-      files = state.allVideos;
-    }
-
-    // Filter: exclude video yang sedang diputar
-    files = files.filter(v => v.file_code !== currentCode).slice(0, 8);
-
-    if (!files.length) {
-      // Fetch video umum sebagai fallback
-      const data = await apiFetch('/videos?per_page=10');
-      files = (data?.result?.files || []).filter(v=>v.file_code !== currentCode).slice(0,6);
-    }
-
-    renderGrid(files, 'related-grid');
-  } catch(e) {
-    document.getElementById('related-grid').innerHTML =
-      '<div style="color:var(--text3);font-size:13px;grid-column:1/-1">Gagal memuat.</div>';
-  }
+function playVideo(){
+  // Replace thumbnail grid with iframe
+  const code = S.currentCode;
+  document.getElementById('player-embed-wrap').innerHTML=`
+    <iframe src="https://lulustream.com/e/${code}"
+            allowfullscreen scrolling="no"
+            allow="autoplay;fullscreen;picture-in-picture"
+            style="width:100%;height:100%;border:none"></iframe>`;
 }
 
-async function loadTrendingVideos(currentCode) {
-  try {
-    const data  = await apiFetch('/trending');
-    const files = (data?.result?.files || data?.result || [])
-      .filter(v => v.file_code !== currentCode).slice(0, 6);
-    renderGrid(files, 'trending-grid');
-  } catch(e) {
-    document.getElementById('trending-grid').innerHTML = '';
-  }
-}
+function goBackFromPlayer(){
+  const prev = S.prevNav||'home';
+  S.currentNav = prev;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(prev+'-page').classList.add('active');
+  const showChip = ['home','trending'].includes(prev);
+  document.getElementById('chip-bar').style.display = showChip?'':'none';
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const navEl = document.getElementById('nav-'+prev);
+  if(navEl) navEl.classList.add('active');
 
-// ═══════════════════════════════════════════════
-// SEARCH
-// ═══════════════════════════════════════════════
-async function doSearch() {
-  const q = document.getElementById('search-input').value.trim();
-  if (!q) return;
-
-  showSkeletons();
-  goHome(false);
-  document.getElementById('page-heading').innerHTML = `Hasil pencarian: <span>"${escHtml(q)}"</span>`;
-
-  try {
-    const data  = await apiFetch(`/search?q=${encodeURIComponent(q)}`);
-    const files = data?.result?.files || [];
-    state.allVideos = files;
-    renderGrid(files);
-    document.getElementById('pagination').innerHTML = '';
-  } catch(e) {
-    document.getElementById('video-grid').innerHTML =
-      '<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔍</div><p>Gagal mencari video.</p></div>';
-  }
-}
-
-function searchTag(tag) {
-  document.getElementById('search-input').value = tag;
-  doSearch();
-}
-
-// ═══════════════════════════════════════════════
-// FILTERS & NAVIGATION
-// ═══════════════════════════════════════════════
-function setFilter(filter, btn) {
-  state.filter = filter;
-  state.currentFldId = '';
-  state.page = 1;
-
-  // Update active filter btn
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-
-  // Update heading
-  const labels = {
-    terbaru:'Video Terbaru', trending:'🔥 Trending',
-    terpopuler:'👁 Terpopuler', durasi:'⏱ Durasi Panjang', random:'🎲 Random'
-  };
-  document.getElementById('page-heading').innerHTML =
-    `${labels[filter]||'Video'} <span></span>`;
-
-  goHome(false);
-  loadVideos();
-}
-
-function filterByFolder(fldId, el) {
-  state.currentFldId = fldId;
-  state.page = 1;
-
-  document.querySelectorAll('#sidebar-categories .sidebar-link')
-    .forEach(l=>l.classList.remove('active'));
-  if (el) el.classList.add('active');
-
-  // Find folder name
-  const folder = state.categories.find(f=>f.fld_id===fldId);
-  const name   = folder ? folder.name : 'Semua Video';
-  document.getElementById('page-heading').innerHTML = `${name} <span></span>`;
-
-  goHome(false);
-  loadVideos();
-}
-
-function goHome(resetFilter = true) {
-  document.getElementById('home-page').classList.remove('hidden');
-  document.getElementById('player-page').classList.remove('active');
-  document.title = 'CLAPSLAP — Video Streaming';
-
-  if (resetFilter) {
-    state.filter = 'terbaru';
-    state.currentFldId = '';
-    document.querySelectorAll('.filter-btn').forEach((b,i)=>{
-      b.classList.toggle('active', i===0);
-    });
-    document.getElementById('page-heading').innerHTML = 'Video <span>Terbaru</span>';
-    loadVideos();
-  }
+  // restore iframe to thumb grid
+  document.getElementById('player-embed-wrap').innerHTML=`
+    <div class="player-thumb-grid" id="player-thumb" onclick="playVideo()">
+      <div class="player-thumb-scene"><img id="pthumb1" src="" alt=""/></div>
+      <div class="player-thumb-scene"><img id="pthumb2" src="" alt=""/></div>
+      <div class="player-thumb-scene"><img id="pthumb3" src="" alt=""/></div>
+      <div class="player-thumb-playbtn">
+        <div><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+      </div>
+    </div>`;
+  document.title = 'CLAPSLAP';
   window.scrollTo(0,0);
 }
 
-// ═══════════════════════════════════════════════
-// PAGINATION
-// ═══════════════════════════════════════════════
-function renderPagination() {
-  const el = document.getElementById('pagination');
-  const { page, totalPages } = state;
-  if (totalPages <= 1) { el.innerHTML=''; return; }
-
-  let html = `<button class="page-btn" ${page===1?'disabled':''} onclick="loadVideos(${page-1})">←</button>`;
-
-  const range = pagRange(page, totalPages);
-  let last = 0;
-  range.forEach(p => {
-    if (p - last > 1) html += `<span style="color:var(--text3);padding:0 4px">…</span>`;
-    html += `<button class="page-btn ${p===page?'active':''}" onclick="loadVideos(${p})">${p}</button>`;
-    last = p;
-  });
-
-  html += `<button class="page-btn" ${page===totalPages?'disabled':''} onclick="loadVideos(${page+1})">→</button>`;
-  el.innerHTML = html;
+async function loadRelated(currentCode, fldId){
+  try{
+    let files=[];
+    if(fldId&&fldId!=='0'){
+      const d = await api(`/videos?fld_id=${fldId}&per_page=15`);
+      files = (d?.result?.files||[]).filter(v=>v.file_code!==currentCode).slice(0,6);
+    }
+    if(!files.length){
+      const d = await api('/videos?per_page=10');
+      files=(d?.result?.files||[]).filter(v=>v.file_code!==currentCode).slice(0,4);
+    }
+    renderVideoList(files,'related-list');
+  }catch(e){document.getElementById('related-list').innerHTML='';}
 }
 
-function pagRange(current, total) {
-  const delta = 2;
-  const range = [];
-  for (let i = Math.max(1, current-delta); i <= Math.min(total, current+delta); i++) range.push(i);
-  if (range[0] > 1) range.unshift(1);
-  if (range[range.length-1] < total) range.push(total);
-  return range;
+async function loadPlayerTrending(currentCode){
+  try{
+    const d = await api('/trending');
+    const files=(d?.result?.files||[]).filter(v=>v.file_code!==currentCode).slice(0,4);
+    renderVideoList(files,'player-trending-list');
+  }catch(e){document.getElementById('player-trending-list').innerHTML='';}
 }
 
-// ═══════════════════════════════════════════════
-// SKELETON
-// ═══════════════════════════════════════════════
-function showSkeletons() {
-  document.getElementById('video-grid').innerHTML = Array(6).fill(`
-    <div class="skel-card">
-      <div class="skel-thumb skeleton"></div>
-      <div class="skel-line skeleton"></div>
-      <div class="skel-line short skeleton"></div>
-    </div>`).join('');
-  document.getElementById('pagination').innerHTML = '';
+// ═══════════════════════════════════════════
+// SAVE / BOOKMARK
+// ═══════════════════════════════════════════
+function toggleSave(code, title, thumb, dur){
+  const idx = S.saved.findIndex(s=>s.file_code===code);
+  if(idx>-1){
+    S.saved.splice(idx,1);
+    toast('Dihapus dari simpanan');
+    document.getElementById('save-btn').textContent='🔖 Simpan';
+    document.getElementById('save-btn').classList.remove('accent');
+  }else{
+    S.saved.unshift({file_code:code,file_title:title,thumbnail:thumb,file_length:dur,views:0,likes:0});
+    toast('✅ Disimpan!');
+    document.getElementById('save-btn').textContent='🔖 Tersimpan';
+    document.getElementById('save-btn').classList.add('accent');
+  }
+  localStorage.setItem('cs_saved',JSON.stringify(S.saved));
 }
 
-// ═══════════════════════════════════════════════
-// UTILITIES
-// ═══════════════════════════════════════════════
-function formatDuration(seconds) {
-  const s = parseInt(seconds) || 0;
-  if (!s) return '';
-  const m = Math.floor(s/60), sec = s%60;
-  const h = Math.floor(m/60), min = m%60;
-  if (h > 0) return `${h}:${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-  return `${min}:${String(sec).padStart(2,'0')}`;
+function renderSavePage(){
+  const el = document.getElementById('save-list');
+  if(!S.saved.length){
+    el.innerHTML=`<div class="save-empty"><div class="icon">🔖</div><p>Belum ada video tersimpan.<br>Tap ikon simpan di halaman video.</p></div>`;
+    return;
+  }
+  renderVideoList(S.saved,'save-list');
 }
 
-function formatViews(n) {
-  const num = parseInt(n)||0;
-  if (num >= 1000000) return (num/1000000).toFixed(1)+'M';
-  if (num >= 1000) return (num/1000).toFixed(1)+'k';
-  return num.toString();
+// ═══════════════════════════════════════════
+// DOWNLOAD
+// ═══════════════════════════════════════════
+function downloadVideo(code){
+  window.open(`https://lulustream.com/d/${code}`,'_blank');
 }
 
-function escHtml(str) {
-  return String(str)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function copyLink(code) {
+// ═══════════════════════════════════════════
+// SHARE
+// ═══════════════════════════════════════════
+function shareVideo(code, title){
   const url = `${location.origin}${location.pathname}?v=${code}`;
-  navigator.clipboard?.writeText(url).then(()=>toast('Link disalin!')).catch(()=>toast('Gagal menyalin'));
+  if(navigator.share){
+    navigator.share({title, url}).catch(()=>{});
+  }else{
+    navigator.clipboard?.writeText(url).then(()=>toast('Link disalin!'));
+  }
 }
 
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'), 2500);
+// ═══════════════════════════════════════════
+// SEARCH
+// ═══════════════════════════════════════════
+function openSearch(){
+  document.getElementById('search-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('search-input-main').focus(),100);
+}
+function closeSearch(){
+  document.getElementById('search-overlay').classList.remove('open');
+}
+function renderSearchHistory(){
+  const hist = JSON.parse(localStorage.getItem('cs_search')||'[]');
+  document.getElementById('sh-list').innerHTML = hist.slice(0,5).map(q=>
+    `<div class="sh-item" onclick="doSearch('${escH(q)}')">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      ${escH(q)}
+    </div>`).join('') || '<div style="color:var(--text3);font-size:13px">Belum ada riwayat</div>';
+}
+function onSearchType(val){
+  // live hint
+}
+async function doSearch(q){
+  q = q || document.getElementById('search-input-main').value.trim();
+  if(!q) return;
+  closeSearch();
+  // save history
+  let hist = JSON.parse(localStorage.getItem('cs_search')||'[]');
+  hist = [q,...hist.filter(h=>h!==q)].slice(0,10);
+  localStorage.setItem('cs_search',JSON.stringify(hist));
+  renderSearchHistory();
+
+  // go home page, show results
+  navTo('home');
+  showSkeleton('video-list');
+  document.getElementById('pagination').innerHTML='';
+  try{
+    const d = await api(`/search?q=${encodeURIComponent(q)}`);
+    const files = d?.result?.files||[];
+    renderVideoList(files,'video-list');
+  }catch(e){
+    document.getElementById('video-list').innerHTML=
+      '<div class="empty"><div class="e-icon">🔍</div><p>Gagal mencari.</p></div>';
+  }
+}
+function searchTag(tag){
+  document.getElementById('search-input-main').value=tag;
+  doSearch(tag);
 }
 
-// ═══════════════════════════════════════════════
-// URL PARAMS — buka video langsung dari URL ?v=xxx
-// ═══════════════════════════════════════════════
-const urlParams = new URLSearchParams(location.search);
-const vParam    = urlParams.get('v');
-if (vParam) {
-  document.addEventListener('DOMContentLoaded', () => openPlayer(vParam));
+// ═══════════════════════════════════════════
+// UPLOAD
+// ═══════════════════════════════════════════
+function initUploadPage(){
+  populateGenreSelect();
+}
+function populateGenreSelect(){
+  const sel = document.getElementById('upload-genre');
+  if(!sel) return;
+  const opts = S.categories.map(f=>`<option value="${f.fld_id}">${escH(f.name)}</option>`).join('');
+  sel.innerHTML = `<option value="">Pilih genre...</option>${opts}`;
+}
+function setUploadMethod(method){
+  S.uploadMethod = method;
+  document.getElementById('tab-file').classList.toggle('active',method==='file');
+  document.getElementById('tab-url').classList.toggle('active',method==='url');
+  document.getElementById('file-drop-zone').style.display = method==='file'?'':'none';
+  document.getElementById('url-input-wrap').classList.toggle('show',method==='url');
+}
+function handleFileDrop(e){
+  e.preventDefault();
+  document.getElementById('file-drop-zone').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if(file) setSelectedFile(file);
+}
+function handleFileSelect(input){
+  if(input.files[0]) setSelectedFile(input.files[0]);
+}
+function setSelectedFile(file){
+  S.uploadFile = file;
+  const dz = document.getElementById('file-drop-zone');
+  dz.innerHTML=`
+    <div class="dz-icon">✅</div>
+    <div class="dz-text">${escH(file.name)}</div>
+    <div class="dz-sub">${(file.size/1024/1024).toFixed(1)} MB — Klik untuk ganti</div>`;
+  if(!document.getElementById('upload-title').value){
+    document.getElementById('upload-title').value = file.name.replace(/\.[^/.]+$/,'');
+  }
+}
+async function doUpload(){
+  const title = document.getElementById('upload-title').value.trim();
+  const tags  = document.getElementById('upload-tags').value.trim();
+  const fldId = document.getElementById('upload-genre').value;
+  const btn   = document.getElementById('upload-submit-btn');
+
+  if(!title){toast('⚠️ Judul tidak boleh kosong');return;}
+
+  if(S.uploadMethod==='url'){
+    const url = document.getElementById('video-url-input').value.trim();
+    if(!url){toast('⚠️ Masukkan URL video');return;}
+    btn.disabled=true;btn.textContent='Mengupload...';
+    showProgress('Mengirim URL ke server...',30);
+    try{
+      // Kirim ke Worker → Worker forward ke Lulustream API
+      const r = await fetch(`${WORKER}/upload-url`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({url,title,tags,fld_id:fldId})
+      });
+      const d = await r.json();
+      if(d.status===200||d.result){
+        showProgress('Upload berhasil!',100);
+        toast('✅ Video berhasil diupload!');
+        resetUploadForm();
+      }else{
+        throw new Error(d.msg||'Upload gagal');
+      }
+    }catch(e){
+      toast('❌ '+e.message);
+    }finally{
+      btn.disabled=false;btn.textContent='⬆️ UPLOAD SEKARANG';
+    }
+    return;
+  }
+
+  // File upload
+  if(!S.uploadFile){toast('⚠️ Pilih file video dulu');return;}
+  btn.disabled=true;btn.textContent='Mengupload...';
+
+  const fd = new FormData();
+  fd.append('file',S.uploadFile);
+  fd.append('title',title);
+  fd.append('tags',tags);
+  fd.append('fld_id',fldId);
+
+  showProgress('Mengupload file...',10);
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST',`${WORKER}/upload-file`);
+  xhr.upload.onprogress = e=>{
+    if(e.lengthComputable){
+      const pct = Math.round(e.loaded/e.total*90);
+      showProgress(`Mengupload... ${pct}%`,pct);
+    }
+  };
+  xhr.onload = ()=>{
+    try{
+      const d = JSON.parse(xhr.responseText);
+      if(d.status===200||d.result){
+        showProgress('Upload selesai!',100);
+        toast('✅ Video berhasil diupload!');
+        resetUploadForm();
+      }else{
+        toast('❌ '+(d.msg||'Upload gagal'));
+      }
+    }catch{toast('❌ Response error');}
+    btn.disabled=false;btn.textContent='⬆️ UPLOAD SEKARANG';
+  };
+  xhr.onerror=()=>{
+    toast('❌ Gagal koneksi ke server');
+    btn.disabled=false;btn.textContent='⬆️ UPLOAD SEKARANG';
+  };
+  xhr.send(fd);
+}
+function showProgress(label,pct){
+  const w = document.getElementById('upload-progress-wrap');
+  w.classList.add('show');
+  document.getElementById('progress-label').textContent=label;
+  document.getElementById('progress-bar').style.width=pct+'%';
+  if(pct>=100) setTimeout(()=>w.classList.remove('show'),2000);
+}
+function resetUploadForm(){
+  S.uploadFile=null;
+  document.getElementById('upload-title').value='';
+  document.getElementById('upload-tags').value='';
+  document.getElementById('video-url-input').value='';
+  document.getElementById('file-drop-zone').innerHTML=`
+    <div class="dz-icon">🎬</div>
+    <div class="dz-text">Drag & drop video di sini</div>
+    <div class="dz-sub">atau klik untuk pilih file — MP4, MKV, AVI (max 4GB)</div>`;
+}
+
+// ═══════════════════════════════════════════
+// PAGINATION
+// ═══════════════════════════════════════════
+function renderPagination(){
+  const el = document.getElementById('pagination');
+  const {page,totalPages} = S;
+  if(totalPages<=1){el.innerHTML='';return;}
+  let h=`<button class="pag-btn" ${page===1?'disabled':''} onclick="loadVideos(${page-1})">‹</button>`;
+  const r=pagRange(page,totalPages);
+  let last=0;
+  r.forEach(p=>{
+    if(p-last>1) h+=`<span style="color:var(--text3);line-height:36px">…</span>`;
+    h+=`<button class="pag-btn ${p===page?'active':''}" onclick="loadVideos(${p})">${p}</button>`;
+    last=p;
+  });
+  h+=`<button class="pag-btn" ${page===totalPages?'disabled':''} onclick="loadVideos(${page+1})">›</button>`;
+  el.innerHTML=h;
+}
+function pagRange(c,t){
+  const r=[];
+  for(let i=Math.max(1,c-2);i<=Math.min(t,c+2);i++) r.push(i);
+  if(r[0]>1) r.unshift(1);
+  if(r[r.length-1]<t) r.push(t);
+  return r;
+}
+
+// ═══════════════════════════════════════════
+// SKELETON
+// ═══════════════════════════════════════════
+function showSkeleton(id){
+  document.getElementById(id).innerHTML=Array(4).fill(`
+    <div class="skel-card">
+      <div class="skel-thumb skel"></div>
+      <div class="skel-line skel"></div>
+      <div class="skel-line s skel"></div>
+      <div class="skel-line xs skel"></div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
+function fmtViews(n){
+  const v=parseInt(n)||0;
+  if(v>=1000000) return (v/1000000).toFixed(1)+'M';
+  if(v>=1000) return (v/1000).toFixed(1)+'k';
+  return v.toString();
+}
+function fmtDur(s){
+  const sec=parseInt(s)||0;
+  if(!sec) return '';
+  const m=Math.floor(sec/60),ss=sec%60,h=Math.floor(m/60),mm=m%60;
+  if(h>0) return `${h}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+  return `${mm}:${String(ss).padStart(2,'0')}`;
+}
+function escH(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2500);
 }
 </script>
 </body>
